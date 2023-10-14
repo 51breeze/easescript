@@ -1,6 +1,6 @@
 {
   "name": "easescript",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "EaseScript test",
   "main": "lib/index.js",
   "bin": {
@@ -35,7 +35,8 @@
     "chalk": "^4.0.0",
     "chokidar": "^3.5.3",
     "commander": "~2.11.0",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "memory-fs": "^0.5.0"
   },
   "devDependencies": {
     "chai": "^4.3.4",
