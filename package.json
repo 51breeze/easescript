@@ -1,0 +1,46 @@
+{
+  "name": "easescript",
+  "version": "0.5.3",
+  "description": "EaseScript test",
+  "main": "lib/index.js",
+  "bin": {
+    "easescript": "./bin/es.js",
+    "es": "./bin/es.js"
+  },
+  "scripts": {
+    "version": "node ./bin/es.js -V",
+    "test": "jasmine ./test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/51breeze/EaseScript.git"
+  },
+  "keywords": [
+    "es",
+    "ease",
+    "script",
+    "EaseScript",
+    "web"
+  ],
+  "type": "commonjs",
+  "author": "Jun Ye",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/51breeze/EaseScript/issues"
+  },
+  "homepage": "https://github.com/51breeze/EaseScript#readme",
+  "dependencies": {
+    "acorn": "^7.3.1",
+    "acorn-jsx": "^5.2.0",
+    "chalk": "^4.0.0",
+    "chokidar": "^3.5.3",
+    "commander": "~2.11.0",
+    "lodash": "^4.17.21",
+    "memory-fs": "^0.5.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "grunt": "^1.4.1",
+    "jasmine": "^3.7.0"
+  }
+}
