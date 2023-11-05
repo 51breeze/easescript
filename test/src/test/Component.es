@@ -22,4 +22,19 @@ package test{
             return this._skinClass
         }
     }
+
+    declare interface ComponentInterface{
+
+    }
+
+    <style>
+    
+        body{
+            font-size:12px
+        }
+    
+    </style>
+
+
+
 }
