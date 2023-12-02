@@ -1866,13 +1866,13 @@ declare function eval(code:string):any;
  * If this argument is not supplied, strings with a prefix of '0x' are considered hexadecimal.
  * All other strings are considered decimal.
  */
-declare function parseInt(value:string, radix?:number):number;
+declare function parseInt(value:any, radix?:number):number;
 
 /**
  * Converts a string to a floating-point number.
  * @param string A string that contains a floating-point number.
  */
-declare function parseFloat(value:string):number;
+declare function parseFloat(value:any):number;
 
 /**
  * Returns a Boolean value that indicates whether a value is the reserved value NaN (not a number).
