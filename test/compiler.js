@@ -2,33 +2,35 @@ const Compiler = require("../lib/core/Compiler");
 const Diagnostic = require("../lib/core/Diagnostic");
 const Compilation = require("../lib/core/Compilation");
 const path =require("path");
+
+const _compiler = new Compiler(Object.assign({
+    debug:true,
+    diagnose:true,
+    output:path.join(__dirname,"./build"),
+    workspace:path.join(__dirname,"./src"),
+    parser:{
+        locations:true
+    }
+},{}));
+
+let initialize = false;
+async function ready(){
+    if( !initialize ){
+        initialize = true;
+        await _compiler.initialize();
+        await _compiler.loadTypes([
+            path.join(__dirname,"index.d.es")
+        ],{scope:'local',inherits:[]});
+    }
+}
+
 class Creator {
-    constructor(options){
-        const compiler = new Compiler(Object.assign({
-            debug:true,
-            diagnose:true,
-            output:path.join(__dirname,"./build"),
-            workspace:path.join(__dirname,"./src"),
-            parser:{
-                locations:true
-            }
-        },options || {}));
-        this._compiler = compiler;
+    constructor(){
+        this._compiler = _compiler;
     }
 
     get compiler(){
         return this._compiler;
-    }
-
-    async ready(){
-        const compiler = this.compiler;
-        if( !this.initialize ){
-            this.initialize = true;
-            await compiler.initialize();
-            await compiler.loadTypes([
-                path.join(__dirname,"index.d.es")
-            ],{scope:'local',inherits:[]});
-        }
     }
 
     removeError(errors, code, line, kind=0){
@@ -43,7 +45,7 @@ class Creator {
 
     factor(file,source){
         return new Promise( async(resolved,reject)=>{
-            await this.ready();
+            await ready();
             const compiler = this.compiler;
             const compilation = new Compilation(compiler);
             try{
