@@ -1205,10 +1205,7 @@ declare class Override{
 
 declare function testOveride<T>(name:T, age:int):boolean;
 declare function testOveride(name:string):string;
-
 declare function testOveride(name:string, age:int):{name:string,age:number};
-
-
 declare function testOveride(name:1):1;
 declare function testOveride(name:'string123'):'string123';
 
