@@ -4,7 +4,7 @@ const Compilation = require("../lib/core/Compilation");
 const path =require("path");
 
 const _compiler = new Compiler(Object.assign({
-    debug:true,
+    debug:false,
     diagnose:true,
     output:path.join(__dirname,"./build"),
     workspace:path.join(__dirname,"./src"),

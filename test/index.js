@@ -3,8 +3,19 @@ const path = require('path')
 const compiler = require("./compiler");
 const root = path.join(__dirname,'./specs');
 
-// const specs = fs.readdirSync( root );
-// specs.forEach(file=>require(path.join(root,file)));
+const specs = fs.readdirSync( root );
+specs.forEach(file=>require(path.join(root,file)));
+
+// require( path.join(root,'bug1.js') )
+// require( path.join(root,'bug2.js') )
+// require( path.join(root,'spe-v2.js') )
+// require( path.join(root,'spe1.js') )
+// require( path.join(root,'spe2.js') )
+// require( path.join(root,'spe3.js') )
+// require( path.join(root,'spe4.js') )
+// require( path.join(root,'spe5.js') )
+// require( path.join(root,'spe6.js') )
+// //require( path.join(root,'spe7.js') )
 
 describe('compile file', function() {
     const creator = new compiler.Creator();

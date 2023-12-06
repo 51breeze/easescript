@@ -12,7 +12,6 @@ describe('test', function(){
         let expression = body[0].expression
         var type = expression.type();
         var ctx =expression.getContext();
-        console.log( type.toString(), expression.toString(), expression.__parsered  )
         expect(`{content:string}[]`).toBe( type.toString(ctx).replace(/[\s\r\n]/g,'') );
 
         const shortcutTelmplates = module.getMember('shortcutTelmplates', 'get');
