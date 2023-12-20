@@ -1,5 +1,5 @@
 ///<scope name='global' />
-
+///<reference file='file'/>
 declare interface Matchers {
        
     message(): any;
@@ -1231,3 +1231,12 @@ declare interface RequestOptions{
 
 
 declare type AsyncRequestOptions<O,S,F> = O & {success:(result:S)=>void} | {fail:(result:F)=>void}
+
+
+declare module "RequestOptions.es"{
+
+    declare const name:string;
+
+    export default name;
+
+}
