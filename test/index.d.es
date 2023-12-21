@@ -1233,7 +1233,12 @@ declare interface RequestOptions{
 declare type AsyncRequestOptions<O,S,F> = O & {success:(result:S)=>void} | {fail:(result:F)=>void}
 
 
-declare module "RequestOptions.es"{
+declare module web.Application {
+
+
+    declare class Application{
+
+    }
 
     declare const name:string;
 
