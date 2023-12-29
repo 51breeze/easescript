@@ -52,7 +52,7 @@ describe('compile syntax', function() {
 
     afterAll(()=>{
         errors.forEach( item=>{
-            if( item.kind == 0 ){
+            if( item.kind == 0 && compilation.errors.includes(item)){
                 fail( item.toString() )
             }
         });

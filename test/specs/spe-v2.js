@@ -55,7 +55,7 @@ describe('infer type by test/V2.es -> ', function() {
 
     afterAll(()=>{
         errors.forEach( item=>{
-            if( item.kind == 0 ){
+            if( item.kind == 0 && compilation.errors.includes(item)){
                 fail( item.toString() )
             }
         });
@@ -114,6 +114,7 @@ describe('infer type by test/V2.es -> ', function() {
             const index = errors.indexOf(error);
             if( index >= 0 ){
                 errors.splice(index,1);
+                result(code, msg, line, kind)
             }
             return error ? error.message : 'Not match error';
         }

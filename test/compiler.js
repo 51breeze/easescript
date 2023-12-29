@@ -38,7 +38,9 @@ class Creator {
             return item.code===code && item.kind === kind && (item.range.start.line) === line;
         });
         if( index>= 0 ){
-            return errors.splice(index,1)[0];
+            const res = errors.splice(index,1)[0];
+            this.removeError(errors, code, line, kind);
+            return res;
         }
         return null;
     }

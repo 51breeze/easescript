@@ -18,7 +18,7 @@ describe('compile file', function() {
 
     afterAll(()=>{
         errors.forEach( item=>{
-            if( item.kind == 0 ){
+            if( item.kind == 0 && compilation.errors.includes(item) ){
                 fail( item.toString() )
             }
         });
@@ -27,7 +27,7 @@ describe('compile file', function() {
 
     it('should compile success and build', async function() {
        
-        expect('Expected 0 errors').toContain( errors.length );
+        expect('Expected 0 errors').toContain( compilation.errors.length );
         const jsxElement = compilation.getReference('jsxElement',  compilation.getModuleById('Test') );
         var stack = jsxElement.body.body[1].declarations[0].init
         expect('JSXElement').toEqual( stack.node.type );

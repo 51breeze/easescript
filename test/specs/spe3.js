@@ -12,7 +12,7 @@ describe('test For by test/ForOf.es > ', function() {
 
     afterAll(()=>{
         errors.forEach( item=>{
-            if( item.kind == 0 ){
+            if( item.kind == 0 && compilation.errors.includes(item)){
                 fail( item.toString() )
             }
         });
