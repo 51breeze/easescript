@@ -84,6 +84,42 @@ describe('test', function() {
         
     });
 
+
+    it('check newProxy', function(){
+        const start = module.getMember('newProxy');
+        let body = start.body.body;
+        let expression = body[1].declarations[0].init;
+        expect('()=>{}').toBe( start.type().toString() );
+        expect('(constructor) public Proxy<{}>(target: {}, handler: ProxyHandler<{}>): {}').toBe( expression.definition().expre );
+        const config = expression.arguments[1];
+        expect('(target: {}, key: string, value: any)=>void').toBe(config.attribute('set').type().toString());
+        expect('{}').toBe(config.attribute('set').init.params[0].type().toString());
+    });
+
+    it('check assignment', function(){
+        const start = module.getMember('assignment');
+        let body = start.body.body;
+        let expression = body[0].declarations[0].init;
+        expect('()=>ProxyHandler<{}>').toBe( start.type().toString() );
+        expression = body[1].expression.right;
+        expect('(target: {}, key: string, value: any)=>void').toBe(expression.attribute('get').type().toString());
+        
+    });
+
+    it('check arrayType', function(){
+        const start = module.getMember('arrayType');
+        let body = start.body.body;
+        let expression = body[0].declarations[0].init;
+        expect('()=>ProxyHandler<{}>[]').toBe( start.type().toString() );
+
+        expression = expression.elements[0];
+        expect('(target: {}, key: string, value: any)=>void').toBe(expression.attribute('set').type().toString());
+
+        expression = body[1].expression.arguments[0];
+        expect('(target: {}, key: string, value: any)=>void').toBe(expression.attribute('get').type().toString());
+        
+    });
+
     it('should compiler error', function() {
 
         let [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type 'AddressReferenceType<number>'`, 1002);

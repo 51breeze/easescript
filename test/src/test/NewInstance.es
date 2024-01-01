@@ -89,4 +89,44 @@ public class NewInstance<T> extends Component< NewInstance<number> >{
         return o;
     }
 
+    newProxy(){
+        const proxy = {};
+        const store = new Proxy(proxy, {
+            set:(target,key,value)=>{
+               
+            }
+        });
+        return store;
+    }
+
+    assignment(){
+        let conf:ProxyHandler<{}> = {
+            set:(target,key,value)=>{
+
+            }
+        }
+        conf = {
+            get:(target,key,value)=>{
+
+            }
+        }
+        return conf;
+    }
+
+
+    arrayType(){
+        let conf:ProxyHandler<{}>[] = [{
+            set:(target,key,value)=>{
+               
+            }
+        }]
+
+        conf.push({
+            get:(target,key,value)=>{
+
+            }
+        })
+        return conf;
+    }
+
 }
