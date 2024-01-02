@@ -92,7 +92,7 @@ describe('test', function() {
         expect('()=>{}').toBe( start.type().toString() );
         expect('(constructor) public Proxy<{}>(target: {}, handler: ProxyHandler<{}>): {}').toBe( expression.definition().expre );
         const config = expression.arguments[1];
-        expect('(target: {}, key: string, value: any)=>void').toBe(config.attribute('set').type().toString());
+        expect('(target: {}, key: string, value: any)=>boolean').toBe(config.attribute('set').type().toString());
         expect('{}').toBe(config.attribute('set').init.params[0].type().toString());
     });
 
@@ -102,7 +102,7 @@ describe('test', function() {
         let expression = body[0].declarations[0].init;
         expect('()=>ProxyHandler<{}>').toBe( start.type().toString() );
         expression = body[1].expression.right;
-        expect('(target: {}, key: string, value: any)=>void').toBe(expression.attribute('get').type().toString());
+        expect('(target: {}, key: string, value: any)=>any').toBe(expression.attribute('get').type().toString());
         
     });
 
@@ -113,10 +113,10 @@ describe('test', function() {
         expect('()=>ProxyHandler<{}>[]').toBe( start.type().toString() );
 
         expression = expression.elements[0];
-        expect('(target: {}, key: string, value: any)=>void').toBe(expression.attribute('set').type().toString());
+        expect('(target: {}, key: string, value: any)=>boolean').toBe(expression.attribute('set').type().toString());
 
         expression = body[1].expression.arguments[0];
-        expect('(target: {}, key: string, value: any)=>void').toBe(expression.attribute('get').type().toString());
+        expect('(target: {}, key: string, value: any)=>any').toBe(expression.attribute('get').type().toString());
         
     });
 

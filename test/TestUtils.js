@@ -43,16 +43,17 @@ function createError(errors, msg='', code=0, kind=0){
     const error = errors.find( item=>{
         if(kind >= 0 && item.kind !== kind )return false;
         if(code >= 0 && item.code !== code )return false;
-        if(msg && item.message !== msg.trim() )return false;
+        if(msg && item.message.replace(/[\s\r\n]+/g,'') !== msg.replace(/[\s\r\n]+/g,'') )return false;
         return true
     });
     const index = errors.indexOf(error);
     if( index >= 0 ){
         errors.splice(index,1);
+        createError(errors, msg, code, kind)
     }
 
     if( error ){
-        return [msg.trim(), error.message]
+        return [msg, error.message]
     }
 
     return [msg.trim(),'(Not found error) : '+msg];

@@ -93,7 +93,7 @@ public class NewInstance<T> extends Component< NewInstance<number> >{
         const proxy = {};
         const store = new Proxy(proxy, {
             set:(target,key,value)=>{
-               
+               return true
             }
         });
         return store;
@@ -102,12 +102,12 @@ public class NewInstance<T> extends Component< NewInstance<number> >{
     assignment(){
         let conf:ProxyHandler<{}> = {
             set:(target,key,value)=>{
-
+                return true;
             }
         }
         conf = {
             get:(target,key,value)=>{
-
+                return value;
             }
         }
         return conf;
@@ -117,13 +117,13 @@ public class NewInstance<T> extends Component< NewInstance<number> >{
     arrayType(){
         let conf:ProxyHandler<{}>[] = [{
             set:(target,key,value)=>{
-               
+               return true;
             }
         }]
 
         conf.push({
             get:(target,key,value)=>{
-
+                return value;
             }
         })
         return conf;

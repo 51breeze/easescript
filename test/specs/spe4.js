@@ -55,6 +55,14 @@ describe('test promise', function() {
         
     });
 
+    it('check fetchApi callback definition', function() {
+        const start = module.getMember('fetchApi');
+        let body = start.body.body;
+        let expression = body[0].argument.arguments[0]
+        expect('(function) (resolve: (value: [string,number])=>void, reject: (reason?: any)=>void)=>void').toBe(expression.definition().expre);
+
+    });
+
     it('compiler error', function() {
         let error = creator.removeError( errors, 1009, 66 );
         expect(`Type '{bss:[string,number]}' is not assignable to assignment of type '[string,number]'`.replace(/(\r\n|\s)+/g,''))
