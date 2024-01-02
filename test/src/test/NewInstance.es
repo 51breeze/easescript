@@ -1,6 +1,6 @@
 package test;
 
-import test.Component;
+import test.Component
 
 public class NewInstance<T> extends Component< NewInstance<number> >{
 
