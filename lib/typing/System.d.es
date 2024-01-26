@@ -87,7 +87,7 @@ declare System{
     * @param processer 一个处理勾子的函数
     * @param priority 调用时的优先级，数字大的优先调用
     */
-    static registerHook<T=any>(type:string, processer:(value?:T,...args)=>T, priority:number=0):void;
+    static registerHook<T=any>(type:string, processer:(...args)=>T|void, priority:number=0):void;
 
     /**
     * 调用系统已注册的勾子函数
