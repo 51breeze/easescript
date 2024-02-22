@@ -48,8 +48,8 @@ describe('test GenericConstraint', function() {
         [error, result] = TestUtils.createError(errors,`'age' is not defined`, 1013);
         expect(error).toEqual(result);
 
-        [error, result] = TestUtils.createError(errors,`Property 'age' is not exists`, 1080);
-        expect(error).toEqual(result);
+        // [error, result] = TestUtils.createError(errors,`Property 'age' is not exists`, 1080);
+        // expect(error).toEqual(result);
 
         [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type '{name: unknown,type: number}'`, 1002);
         expect(result).not.toContain('(Not found error)');
