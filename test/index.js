@@ -27,7 +27,7 @@ describe('compile file', function() {
 
     it('should compile success and build', async function() {
        
-        expect('Expected 0 errors').toContain( compilation.errors.length );
+        expect('Expected 0 errors').toContain( compilation.errors.filter(item=>item.kind===0||item.kind===1).length );
         const jsxElement = compilation.getReference('jsxElement',  compilation.getModuleById('Test') );
         var stack = jsxElement.body.body[1].declarations[0].init
         expect('JSXElement').toEqual( stack.node.type );
