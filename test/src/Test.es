@@ -157,7 +157,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
     }
 
     restParams(items:int[], obj:{name:string,age:int}){
-
+        console.log('----')
     }
 
 
@@ -971,7 +971,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
 
     on(name:string,callback:(...rest:(string|number)[])=>void){
-
+        console.log(11)
     }
 
 }

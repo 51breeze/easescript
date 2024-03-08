@@ -5,6 +5,7 @@ const path =require("path");
 
 const _compiler = new Compiler(Object.assign({
     debug:false,
+    lang:'en-US',
     diagnose:true,
     output:path.join(__dirname,"./build"),
     workspace:path.join(__dirname,"./src"),
@@ -59,6 +60,7 @@ class Creator {
                 compilation.pluginScopes.scope = 'local';
                 compilation.file = file;
                 await compilation.parserAsync(source);
+               
                 if(compilation.stack){
                     resolved(compilation);
                 }else{
