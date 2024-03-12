@@ -2,7 +2,9 @@
 const program = require('commander');
 program
 .version('EaseScript '+require('../package.json').version)
-.option('-f, --file [file]', '指定需要编译的文件')
+.option('-f, --file [file]', '指定需要编译的文件',(val)=>{
+    return val ? val.split(',') : [];
+})
 .option('-c, --config-file-name [file]', '指定配置文件','es.config.js')
 .option('-o, --output [dir]', '输出路径','./build')
 .option('-p, --plugins [javascript,php]', '语法构建器',function (val) {
@@ -22,7 +24,6 @@ program
 .option('--debug', '是否开启调试',false)
 .option('--throw-error', '显示错误',false)
 program.parse(process.argv);
-const Compiler = require('../lib/start.js');
 const config = [
    "file",
    "configFileName",
@@ -31,6 +32,7 @@ const config = [
    "plugins",
    "suffix",
    "types",
+
    "debug",
    "reserved",
    "env",
@@ -55,4 +57,5 @@ config.forEach( name=>{
     }
 });
 options.commandLineEntrance = true;
-Compiler.start(options);
+const compile = require('../compile/index.js');
+compile(options);

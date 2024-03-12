@@ -13,6 +13,11 @@ package com
         get target(){
             return new Person();
         }
+
+        @get
+        fetch(){
+            return []
+        }
         
     }
   

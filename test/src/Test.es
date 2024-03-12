@@ -17,6 +17,8 @@ import unit.Index as UIndex;
 
 import  config, {child} from './config.es';
 
+@Embed(logo = '../logo.png')
+
 /**
 * Test a class
 * @param name
@@ -24,6 +26,14 @@ import  config, {child} from './config.es';
 //sdfsdfsdfdf
 @Runtime(server);
 public class Test<U,B=string> extends Person<string> implements Iterator<number>, TestInterface {
+
+     /**
+    * @public
+    * the is static dddddd
+    */
+    get dddddd(){
+        return ''
+    }
 
     /**
     *  返回一个类的引用
@@ -54,6 +64,8 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
         var items369999:any = [1]
         var clone = [...items369999]
+
+        console.log(Imgs, Img, config, child, logo)
         
         return buname
     }
@@ -80,15 +92,17 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         return 'uuName';
     }
 
+    
+
     /**
     * @private
-    * the is class type.
+    * the is class type iiu
     */
     private static var iiu:class<Test<any>> = Test;
 
     /**
     * @private
-    * Automatic inference string type
+    * Automatic inference string type bbss
     */
     private bbss = 'bbss';
 
@@ -424,7 +438,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
         var list:string[] = [''];
         for( var b of list ){
-
+            console.log(b)
         }
 
 
@@ -933,7 +947,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         }
 
 
-        @Provider(name69=get, 'yejun/api', className=com.Person );
+        @Provider(method=get, action=fetch, className=com.Person );
 
         
 
@@ -970,6 +984,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
     }
 
 
+    //on enent
     on(name:string,callback:(...rest:(string|number)[])=>void){
         console.log(11)
     }

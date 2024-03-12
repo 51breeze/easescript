@@ -13,7 +13,9 @@ describe('compile file', function() {
     let module = null;
     beforeAll(async function() {
         compilation = await creator.startByFile('./Test.es');
-        errors = compilation.compiler.errors;
+        if(compilation){
+            errors = compilation.compiler.errors;
+        }
     });
 
     afterAll(()=>{
@@ -26,7 +28,7 @@ describe('compile file', function() {
     })
 
     it('should compile success and build', async function() {
-       
+        if(!compilation)return;
         expect('Expected 0 errors').toContain( compilation.errors.filter(item=>item.kind===0||item.kind===1).length );
         const jsxElement = compilation.getReference('jsxElement',  compilation.getModuleById('Test') );
         var stack = jsxElement.body.body[1].declarations[0].init

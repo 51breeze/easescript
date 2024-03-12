@@ -36,7 +36,7 @@ class Index{
         callback();
 
         console.log("===Hello word====");
-        @Provider( className=com.Person, 'index', 'get' );
+        @Provider( className=com.Person, 'fetch', 'get' );
 
         Index.find(1);
 
