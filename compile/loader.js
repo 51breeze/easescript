@@ -44,6 +44,40 @@ const loader=(options)=>{
         return compile.normalizeModuleFile(compilation, query.id, query.type, query.file)
     }
 
+    const getCompilation = (file)=>{
+        const {resourcePath,query} = parseResource(file);
+        const absPath = compile.normalizePath(path.isAbsolute(resourcePath) ? resourcePath : path.join(process.cwd(), resourcePath))
+        const resourceId = compile.getResourceId(absPath);
+        return compile.compilations.get(resourceId);
+    }
+
+    const createTypes=async (stat, outdir)=>{
+        const outputs = stat.metafile.outputs;
+        const datamap = new Map();
+        Object.keys(outputs).forEach( dist=>{
+            const stas = outputs[dist];
+            const entryPoint = stas.entryPoint;
+            const entryCompilation = entryPoint ? getCompilation(entryPoint) : null;
+            const inputs = stas.inputs;
+            const relativePath = './'+path.relative(outdir, dist);
+            if(entryCompilation){
+                datamap.set(entryCompilation, relativePath);
+            }
+            Object.keys(inputs).forEach(file=>{
+                if(!filter.test(file))return;
+                const compi = getCompilation(file)
+                if(compi){
+                    if(entryCompilation === compi){
+                        datamap.set(compi, relativePath);
+                    }else if(!datamap.has(compi)){
+                        datamap.set(compi, null);
+                    }
+                }
+            });
+        });
+        await emitFileTypes(datamap, outdir);
+    }
+
     Object.keys(loaderExtensions).forEach((loader)=>{
         if(Array.isArray(loaderExtensions[loader])){
             const extensions = loaderExtensions[loader];
@@ -56,7 +90,9 @@ const loader=(options)=>{
     return {
         name:'easescript',
         async setup(build){
-            
+
+            await compile.initialize();
+
             const pluginInstances = plugins.map(config=>{
                 const plugin = config.plugin;
                 const options = config.options;
@@ -102,28 +138,7 @@ const loader=(options)=>{
                 if(errors.length>0){
                     console.info(`${Lang.get('note')} ${Lang.get(100, errors.length)}`)
                 }
-               
-                const outputs = stat.metafile.outputs;
-                const datamap = new Map();
-
-                //console.log( outputs )
-                Object.keys(outputs).forEach( emitFile=>{
-                    const stas = outputs[emitFile];
-                    const inputs = stas.inputs;
-                    const relativePath = path.relative(outdir, emitFile);
-                    Object.keys(inputs).forEach(file=>{
-                        if(!filter.test(file))return;
-                        const {resourcePath,query} = parseResource(file);
-                        const absPath = compile.normalizePath(path.join(process.cwd(), resourcePath))
-                        const resourceId = compile.getResourceId(absPath);
-                        const compi = compile.compilations.get(resourceId);
-                        if(compi){
-                            datamap.set(compi, relativePath);
-                        }
-                    });
-                });
-                await emitFileTypes(datamap, outdir);
-
+                await createTypes(stat, outdir);
             });
 
             build.onDispose(()=>{
@@ -131,7 +146,22 @@ const loader=(options)=>{
             });
 
             build.onResolve({filter}, async args => {
-                return {path:resolvePath(args.path) }
+                const file = resolvePath(args.path);
+                if(options.excludeGlobalClassBundle){
+                    const compi = getCompilation(file);
+                    if(compi && compi.isGlobalDocument()){
+                        const {query} = parseResource(args.path);
+                        let id = query.id;
+                        if(!id){
+                            id = path.basename(compi.file, path.extname(compi.file));
+                        }
+                        return {
+                            path:'esglobal:'+id,
+                            external:true
+                        }
+                    }
+                }
+                return {path:file}
             });
 
             build.onLoad({filter}, args=>{

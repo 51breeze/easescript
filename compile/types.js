@@ -3,9 +3,8 @@ const Namespace = require('../lib/core/Namespace');
 const Context = require('../lib/core/Context');
 const fs = require('fs');
 const path = require('path');
-
-function makeRawType(type, defaultType='any', inferFlag = false){
-    if(!type)return ': '+defaultType;
+function makeRawType(type, defaultType='any', inferFlag = false, colon=': '){
+    if(!type)return colon+defaultType;
     let onlyTypeName = inferFlag;
     if(type.isStack && type.parentStack){
         let p = type.parentStack;
@@ -25,10 +24,18 @@ function makeRawType(type, defaultType='any', inferFlag = false){
             onlyTypeName = true;
         }
     }
+
+    if(inferFlag){
+        if(type.type.isGenericType){
+            return type.type.toString({},{onlyTypeName});
+        }
+    }
+
     Context.setDefaultInferType(Namespace.globals.get('any'))
-    const str =  ': '+ type.type().toString({}, {
+    const str =  colon+ type.type().toString({}, {
         complete:true,
         onlyTypeName,
+        inbuild:true,
         inferAnyDefaultType:true,
     });
     Context.setDefaultInferType(null);
@@ -95,23 +102,28 @@ function makeAssignGenerics(assignGenerics){
     return `<${value}>`;
 }
 
+function formatIndent(message, indent='\t'){
+    return message.replace(/(\t+)/g,(a,b)=>{
+        return b+indent;
+    }).replace(/[\r\n]}/g,`\n${indent}}`);
+}
+
 function makeFunction(stack, typeWhenExists=false){
     const genericity = makeGenericity(stack.genericity);
     let returnType = '';
     if(typeWhenExists){
         if(stack._returnType){
-            returnType = makeRawType(stack._returnType, 'any');
+            returnType = makeRawType(stack._returnType, 'any', true);
         }
     }else{
         returnType = makeRawType(stack._returnType || stack.getReturnedType(), 'void', true);
     }
-    return `${genericity}(${makeFunctionParams(stack.params)})${returnType}`.replace(/(\t+)/g,(a,b)=>{
-        return b+'\t\t';
-    }).replace(/[\r\n]}/,'\n\t\t}')
+    return formatIndent(`${genericity}(${makeFunctionParams(stack.params)})${returnType}`,'\t\t');
 }
 
 function makeComments(comments, descriptor, indent='\t\t'){
-    if(!comments || !comments.length)return descriptor;
+    descriptor = descriptor.replace(/^[\s\t]+/,'');
+    if(!comments || !comments.length)return indent+descriptor;
     if(comments){
         const text = comments.map(item=>{
             if(item.type==='Block'){
@@ -129,7 +141,7 @@ function makeMethod(stack, isConstructor){
     if(!stack.isMethodDefinition)return null;
     const modifier = Utils.getModifierValue(stack)
     if(modifier==='private')return null;
-    let method = ['\t\t'];
+    let method = [];
     let key = stack.key.value();
     if(stack.static){
         method.push('static ')
@@ -149,9 +161,10 @@ function makeMethod(stack, isConstructor){
 
 function makeProperty(stack){
     if(!stack.isPropertyDefinition)return null;
+    const dynamic = stack.dynamic;
     const modifier = Utils.getModifierValue(stack)
     if(modifier==='private')return null;
-    let property = ['\t\t'];
+    let property = [];
     let key = stack.value();
     if(stack.static){
         property.push('static ')
@@ -162,6 +175,12 @@ function makeProperty(stack){
     if(stack.isReadonly){
         property.push(`const `)
     }
+
+    if(stack.dynamic){
+       const keyType = stack.dynamicKeyType;
+       return makeComments(stack.comments,`[${key}${makeRawType(keyType)}]${makeRawType(stack.type())}`);
+    }
+
     const type = makeRawType(stack.type());
     const init = stack.init;
     if(init && init.isLiteral){
@@ -172,7 +191,28 @@ function makeProperty(stack){
     return makeComments(stack.comments, property.join(''));
 }
 
-function makeImport(stack, module, dependencies){
+function makeDeclarator(stack){
+    if(stack.isDeclaratorTypeAlias){
+        let id = stack.left.value()
+        let value = formatIndent(makeRawType(stack.right, 'any', false, ''));
+        let genericity = formatIndent(makeGenericity(stack.genericity))
+        return `declare type ${id}${genericity} = ${value};`
+    }else if(stack.isDeclaratorVariable){
+        stack = stack.declarations[0];
+        let id = stack.id.value()
+        let init = stack.init;
+        let kind = stack.kind;
+        let type = formatIndent(makeRawType(stack._acceptType, makeRawType(init,'any'), false));
+        let initValue = '';
+        if(init && (init.isIdentifier||init.isLiteral)){
+            initValue = ' = '+init.raw();
+        }
+        return `declare ${kind} ${id}${type}${initValue};`;
+    }
+    return null;
+}
+
+function makeImport(stack, module, dependencies, cache=null){
     if(stack.source.isLiteral)return null;
     const desc = stack.description();
     if(!desc)return null;
@@ -181,6 +221,8 @@ function makeImport(stack, module, dependencies){
         return null;
     }
     if(!dependencies.has(desc))return null;
+    if(cache.has(desc))return null;
+    cache.add(desc);
     const alias = stack.alias;
     if(alias){
         return `import ${stack.raw()} as ${alias.value()};`
@@ -227,6 +269,7 @@ function makeImport(stack, module, dependencies){
     // }
 }
 
+
 function findInheritMethods(module, stack, name){
     if(!module || !module.isModule)return false;
     return module.extends.concat(module.implements).some( dep=>{
@@ -251,8 +294,9 @@ function findInheritMethods(module, stack, name){
     });
 }
 
-function genImports(stack, module, dependencies){
-    return stack.imports.map( imp=>makeImport(imp, module, dependencies) ).filter(item=>!!item);
+function genImports(imports, module, dependencies){
+    const cache = new WeakSet();
+    return imports.map( imp=>makeImport(imp, module, dependencies, cache) ).filter(item=>!!item);
 }
 
 function getDependencyType(type,dataset){
@@ -263,14 +307,32 @@ function getDependencyType(type,dataset){
         type.elements.forEach(item=>{
             getDependencyType(item.type(), dataset);
         });
-    }else if(type.isAliasType && (type=type.inherit)){
-        getDependencyType(type.type(), dataset);
+        if(type.isClassGenericType && (type=type.inherit) ){
+            type = type.type()
+            if(type.isAliasType){
+                getDependencyType(type, dataset);
+            }
+        }
+    }else if(type.isAliasType){
+        if(type.target && type.target.isStack && type.target.compilation){
+            if(!type.target.compilation.isGlobalDocument()){
+                dataset.add(type.target);
+            }
+        }
+        if(type = type.inherit){
+            getDependencyType(type.type(), dataset);
+        }
     }else if(type.isIntersectionType){
         getDependencyType(type.left.type(), dataset);
         getDependencyType(type.right.type(), dataset);
     }else if(type.isKeyofType && (type=type.referenceType)){
         getDependencyType(type.type(), dataset);
     }else if(type.isFunctionType){
+        if(type.target && type.target.isDeclaratorFunction && type.target.compilation){
+            if(!type.target.compilation.isGlobalDocument()){
+                dataset.add(type.target);
+            }
+        }
         type.params.forEach(item=>{
             if(item.acceptType){
                 getDependencyType(item.acceptType.type(),dataset)
@@ -289,6 +351,15 @@ function getDependencyType(type,dataset){
     }
 }
 
+function addDeclaratorVariableRefs(stack, dataset){
+    if(stack && stack.isAssignmentPattern && stack.right && stack.right.isIdentifier){
+        const desc = stack.right.description();
+        if(desc && desc.isDeclaratorVariable && !desc.compilation.isGlobalDocument()){
+            dataset.add(desc)
+        }
+    }
+}
+
 function getDependencies(stack, dataset){
     if(!stack || !dataset)return;
     if(stack.isEnumDeclaration || stack.isClassDeclaration || stack.isDeclaratorDeclaration || stack.isInterfaceDeclaration){
@@ -296,6 +367,17 @@ function getDependencies(stack, dataset){
     }else if(stack.isMethodDefinition){
         stack = stack.expression;
         stack.params.forEach(item=>{
+            if( item.isObjectPattern ){
+                item.properties.map( property=>{
+                    addDeclaratorVariableRefs(property.init,dataset);
+                });
+            }else if( item.isArrayPattern ){
+                item.elements.map( item=>{
+                    addDeclaratorVariableRefs(item,dataset);
+                });
+            }else{
+                addDeclaratorVariableRefs(item,dataset);
+            }
             if(item.acceptType){
                 getDependencyType(item.acceptType.type(),dataset)
             }
@@ -315,89 +397,193 @@ function getDependencies(stack, dataset){
     }
 }
 
+function sortMembers( bodys ){
+    return bodys.sort( (a,b)=>{
+        let a1 = a[1].static ? -5 : 0;
+        let b1 = b[1].static ? -5 : 0;
+        if(a1===0){
+            const modifier = Utils.getModifierValue(a[1]);
+            if(modifier==='protected'){
+                a1 = -4
+            }
+        }
+        if(b1===0){
+            const modifier = Utils.getModifierValue(b[1]);
+            if(modifier==='protected'){
+                b1 = -4
+            }
+        }
+        if(a1===0 && a[1].isConstructor ){
+            a1 = -3
+        }
+        if(b1===0 && b[1].isConstructor){
+            b1 = -3
+        }
+        if(a1===0 && a[1].isPropertyDefinition ){
+            a1 = -2
+        }
+        if(b1===0 && b[1].isPropertyDefinition){
+            b1 = -2
+        }
+        if(a1===0 && (a[1].isMethodGetterDefinition || a[1].isMethodSetterDefinition) ){
+            a1 = -1
+        }
+        if(b1===0 && (b[1].isMethodGetterDefinition || b[1].isMethodSetterDefinition) ){
+            b1 = -1
+        }
+        return a1 - b1;
+    });
+}
+
+function makeModule(module, globals, emitFile){
+    if(!module.used)return;
+    if(!module.isModule)return;
+
+    const id = module.id
+    const kind = module.isClass ? 'class' : 'interface';
+    const stacks = module.getStacks();
+    const dependencies = new Set();
+    const stackGenericity = stacks.filter(stack=>!!stack.genericity).sort((a,b)=>{
+        if(a.genericity.elements.length > b.genericity.elements.length)return -1;
+        if(b.genericity.elements.length > a.genericity.elements.length)return 1;
+        return 0;
+    })[0];
+
+    let inherit = '';
+    let implements = '';
+    let genericity = stackGenericity ? makeGenericity(stackGenericity.genericity) : '';
+    let stackExtends = stacks.filter(stack=>!!stack.inherit)[0];
+    if(stackExtends){
+        dependencies.add(module.inherit.type())
+        inherit = `extends ${stackExtends.inherit.value()}${makeAssignGenerics(stackExtends.inherit.assignGenerics)}`
+    }
+
+    let stackImplements = stacks.filter(stack=>stack.implements && stack.implements.length>0).sort((a,b)=>{
+        if(a.implements.length > b.implements.length)return -1;
+        if(b.implements.length > a.implements.length)return 1;
+        return 0;
+    });
+
+    if(stackImplements.length>0){
+        module.implements.forEach( dep=>{
+            dependencies.add(dep)
+        });
+        const imps = stackImplements[0].implements.map( imp=>{
+            return `${imp.value()}${makeAssignGenerics(imp.assignGenerics)}`
+        }).filter( imps=>!!imps )
+        implements = ` implements ${imps.join(', ')}`;
+    }
+    
+    const contents = [];
+    const bodys = [];
+    const memmbers = Object.create(null);
+    contents.push(`\tdeclare ${kind} ${id}${genericity} ${inherit}${implements}{`);
+
+    stacks.forEach( stack=>{
+        if(stack.isEnumDeclaration){
+            return;
+        }
+        stack.body.forEach( stack=>{
+            let descriptors = memmbers[stack.value()] || (memmbers[stack.value()]=[]);
+            descriptors.push(stack);
+            if(descriptors.length>1){
+                const result = descriptors.every( descriptor=>{
+                    const has = descriptors.some( item=>{
+                        if(item=== descriptor)return false;
+                        if( !!descriptor.static != !!item.static)return false;
+                        return module.compareDescriptor(item, descriptor);
+                    });
+                    return !has;
+                });
+                if(result){
+                    return;
+                }
+            }
+            if(stack.isMethodDefinition){
+                if(stack.isConstructor || !findInheritMethods(module, stack, stack.value())){
+                    getDependencies(stack, dependencies);
+                    const result = makeMethod(stack, stack.isConstructor);
+                    if(result){
+                        bodys.push([result, stack])
+                    }
+                }
+
+            }else if(stack.isPropertyDefinition){
+                getDependencies(stack, dependencies);
+                const result = makeProperty(stack);
+                if(result){
+                    bodys.push([result,stack]);
+                }
+            }
+        });
+    });
+
+    dependencies.forEach( dep=>{
+        if(dep.isDeclaratorVariable || dep.isDeclaratorTypeAlias){
+            globals.add(dep);
+        }else if(dep.isModule){
+            globals.add(dep);
+        }
+    });
+
+    contents.push(sortMembers(bodys).map(item=>item[0]).join('\n'))
+    contents.push(`\t}`);
+
+    let imports = genImports(stacks.flatMap((stack)=>stack.imports), module, dependencies);
+    if(emitFile && module.isClass){
+        imports.push(`import ${id} from "${emitFile.replaceAll('\\','/')}";`)
+    }
+
+    if(imports.length>0){
+        contents.unshift( imports.join('\n\t') )
+    }
+
+    return makeComments(stacks.flatMap(stack=>stack.comments), contents.join('\n'), '\t');
+}
+
 async function emitFileTypes(datamap, buildDir){
 
     const codeMaps = new Map();
+    const globals = new Set();
+    const cache = new WeakSet();
+
+    const makeFactory = (module, emitFile)=>{
+        if(cache.has(module))return;
+        cache.add(module)
+        let dataset = codeMaps.get(module.namespace);
+        if(!dataset){
+            codeMaps.set(module.namespace,dataset=[]);
+        }
+        let code = makeModule(module, globals, emitFile);
+        if(code){
+            dataset.push([module.compilation, code]);
+        }
+    }
 
     datamap.forEach((emitFile, compilation)=>{
         if(compilation.isGlobalDocument())return;
-        compilation.modules.forEach(module=>{
-            if(!module.used)return;
-            const id = module.id
-            const kind = module.isClass ? 'class' : 'interface';
-            const moduleContents = [];
-            
+        if(compilation.isDescriptorDocument())return;
+        compilation.modules.forEach((module)=>{
+            makeFactory(module,emitFile)
+        });
+    });
 
-            module.getStacks().forEach( stack=>{
-                
-                if(stack.isEnumDeclaration){
-                    return;
-                }
-                
-                let inherit = '';
-                let implements = '';
-                let genericity = makeGenericity(stack.genericity);
-                const dependencies = new Set();
-                if(stack.inherit){
-                    dependencies.add(module.inherit.type())
-                    inherit = `extends ${stack.inherit.value()}${makeAssignGenerics(stack.inherit.assignGenerics)}`
-                }
-                if(stack.implements && stack.implements.length>0){
-                    module.implements.forEach( dep=>{
-                        dependencies.add(dep)
-                    });
-                    const imps = stack.implements.map( imp=>{
-                        return `${imp.value()}${makeAssignGenerics(imp.assignGenerics)}`
-                    });
-                    implements = ` implements ${imps.join(', ')}`;
-                }
-
-                const contents = [];
-                contents.push(`\tdeclare ${kind} ${id}${genericity} ${inherit}${implements}{`);
-
-                const bodys = [];
-                stack.body.forEach( stack=>{
-                    if(stack.isMethodDefinition){
-                        if(stack.isConstructor || !findInheritMethods(module, stack, stack.value()) ){
-                            getDependencies(stack, dependencies);
-                            const result = makeMethod(stack, stack.isConstructor);
-                            if(result){
-                                bodys.push(result)
-                            }
-                        }
-                    }else if( stack.isPropertyDefinition ){
-                        getDependencies(stack, dependencies);
-                        const result = makeProperty(stack);
-                        if(result){
-                            bodys.push(result);
-                        }
-                    }
-                });
-
-                contents.push(bodys.join('\n'))
-                contents.push(`\t}`);
-
-                let imports = genImports(stack, module, dependencies);
-                if(module.isClass){
-                    imports.push(`import ${id} from "./${emitFile.replaceAll('\\','/')}";`)
-                }
-
-                if(imports.length>0){
-                    contents.unshift('\t'+imports.join('\n\t'))
-                }
-
-                moduleContents.push(makeComments(stack.comments, contents.join('\n'), '\t', '\t'))
-
-            });
-
-            if( moduleContents.length ){
-                let dataset = codeMaps.get(module.namespace);
+    globals.forEach( stack=>{
+        if(stack.compilation && stack.compilation.isGlobalDocument()){
+            return;
+        }
+        if(stack.isModule && stack.isType){
+            makeFactory(stack);
+        }else{
+            const code = makeDeclarator(stack);
+            if(code){
+                let dataset = codeMaps.get(stack.namespace);
                 if(!dataset){
-                    codeMaps.set(module.namespace,dataset=[]);
+                    codeMaps.set(stack.namespace,dataset=[]);
                 }
-                dataset.push([compilation, moduleContents]);
+                dataset.unshift([stack.compilation, makeComments(stack.comments, code, '\t')]);
             }
-        })
+        }
     });
 
     const keys = Array.from(codeMaps.keys()).sort((a,b)=>{

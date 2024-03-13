@@ -32,7 +32,6 @@ const config = [
    "plugins",
    "suffix",
    "types",
-
    "debug",
    "reserved",
    "env",

@@ -1,4 +1,4 @@
-///<scope name='global' />
+///<scope name='local' />
 ///<reference file='file'/>
 declare interface Matchers {
        
@@ -1172,7 +1172,7 @@ declare type TestAlisType = string | number | null;
 
 declare type AddressReferenceType<T9666> = T9666;
 
-declare type OType<T06933> = {
+declare type OType<T06933>= {
     name:T06933,
 };
 

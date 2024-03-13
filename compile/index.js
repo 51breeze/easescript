@@ -3,45 +3,41 @@ const esbuild = require('esbuild');
 const path = require('path');
 const merge  = require("lodash/merge");
 const loader = require('./loader');
+const chalk = require('chalk');
 
-function formatMessage(){
-    // let message = ['Build successful!'];
-    // if(errors.length>0){
-    //     message.push(`Note: there ${chalk.red(`has ${errors.length} errors`)} that need to be improved.`);
-    // }
+function formatMessage(outdir){
+    let message = [
+        'Build successful!',
+        `Output:${outdir}`
+    ];
 
-    // let strLen = 0;
-    // let hideMaxLen = 0;
-    // let hideChars = ['\x1B[31m','\x1B[39m'];
-    // message.forEach( item=>{
-    //     let len = 0;
-    //     hideChars.forEach( match=>{
-    //         if( item.includes(match) ){
-    //             len+=match.length;
-    //         }
-    //     });
-    //     if(len>0){
-    //         hideMaxLen = Math.max(len, hideMaxLen);
-    //     }
-    //     strLen = Math.max(strLen, item.length);
-    // });
+    let strLen = 0;
+    let hideMaxLen = 0;
+    let hideChars = ['\x1B[31m','\x1B[39m'];
+    message.forEach( item=>{
+        let len = 0;
+        hideChars.forEach( match=>{
+            if( item.includes(match) ){
+                len+=match.length;
+            }
+        });
+        if(len>0){
+            hideMaxLen = Math.max(len, hideMaxLen);
+        }
+        strLen = Math.max(strLen, item.length);
+    });
 
-    // let sep =  '*'.repeat(strLen-hideMaxLen+10);
-    // let format = ()=>{
-    //     let padding = '   ';
-    //     return message.map( item=>{
-    //         item = item.padEnd(strLen-(padding.length*2)-4);
-    //         item = padding+item+padding;
-    //         item = sep.slice(0,2) +item + sep.slice(-2);
-    //         return item;
-    //     }).join('\n');
-    // }
-    // if(errors.length>0){
-    //     const orange = chalk.keyword('orange');
-    //     console.warn(orange(`${sep}\n${format()}\n${sep}`))
-    // }else{
-    //     console.info(chalk.bgGreen(`${sep}\n${format()}\n${sep}`))
-    // }
+    let sep =  '*'.repeat(strLen-hideMaxLen+10);
+    let format = ()=>{
+        let padding = '   ';
+        return message.map( item=>{
+            item = item.padEnd(strLen-(padding.length*2)-4);
+            item = padding+item+padding;
+            item = sep.slice(0,2) +item + sep.slice(-2);
+            return item;
+        }).join('\n');
+    }
+    console.info(chalk.green(`${sep}\n${format()}\n${sep}`))
 }
 
 module.exports = async(options)=>{
@@ -54,13 +50,9 @@ module.exports = async(options)=>{
         diagnose:true,
         enableComments:true,
         lang:'zh-CN',
-        exitWhenHasErrors:false
+        exitWhenHasErrors:false,
+        excludeGlobalClassBundle:true,
     }, options);
-
-    const entryPoints = {};
-    files.forEach(file=>{
-        entryPoints[path.basename(file,'.es').toLowerCase()] = file;
-    });
 
     options.plugins = [
         {
@@ -74,7 +66,7 @@ module.exports = async(options)=>{
     ]
 
     esbuild.build({
-        entryPoints,
+        entryPoints:files,
         chunkNames: 'deps/[hash]',
         splitting:true,
         bundle: true,
@@ -90,6 +82,8 @@ module.exports = async(options)=>{
             loader(options)
         ],
       }).then( (res)=>{
+        //const outdir = path.join(process.cwd(),options.output);
+        //formatMessage(outdir);
         console.log('\nBuild done.\n')
       }).catch((e) =>{
         console.log( e )
