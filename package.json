@@ -9,7 +9,7 @@
   "scripts": {
     "version": "node ./bin/es.js -V",
     "test": "jasmine ./test/index.js",
-    "esc": "node ./bin/esc.js -f Test.es,Index.es"
+    "esc": "node ./bin/esc.js -f Test.es"
   },
   "repository": {
     "type": "git",
@@ -36,8 +36,10 @@
     "chokidar": "^3.5.3",
     "commander": "~2.11.0",
     "fs-extra": "^11.2.0",
+    "hash-sum": "^2.0.0",
     "lodash": "^4.17.21",
-    "memory-fs": "^0.5.0"
+    "memory-fs": "^0.5.0",
+    "mime-types": "^2.1.35"
   },
   "devDependencies": {
     "chai": "^4.3.4",

@@ -14,10 +14,12 @@ import unit.Index as UIndex;
 
 @Embed(Img='../index.html');
 @Embed(Imgs='./Index.es');
+@Embed(Social='../social.svg');
 
 import  config, {child} from './config.es';
 
 @Embed(logo = '../logo.png')
+@Embed(local = '../local.svg')
 
 /**
 * Test a class
@@ -29,7 +31,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
      /**
     * @public
-    * the is static dddddd
+    * the is static 
     */
     get dddddd(){
         return ''
@@ -65,7 +67,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         var items369999:any = [1]
         var clone = [...items369999]
 
-        console.log(Imgs, Img, config, child, logo)
+        console.log(Imgs, Img, config, child, logo, Social, local)
         
         return buname
     }

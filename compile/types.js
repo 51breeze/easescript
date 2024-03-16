@@ -36,6 +36,7 @@ function makeRawType(type, defaultType='any', inferFlag = false, colon=': '){
         complete:true,
         onlyTypeName,
         inbuild:true,
+        fetchDeclareGenericsDefaultValue:true,
         inferAnyDefaultType:true,
     });
     Context.setDefaultInferType(null);
@@ -82,11 +83,35 @@ function makeFunctionParams(params){
     }).join(', ')
 }
 
+function makeDefinitionType(stack){
+    if(stack.isTypeUnionDefinition){
+        return stack.elements.map(item=>makeDefinitionType(item)).join(' | ')
+    }else if(stack.isTypeIntersectionDefinition ){
+        return [stack.left, stack.right].map(item=>makeDefinitionType(item)).join(' & ');
+    }else if( stack.isTypeObjectDefinition ){
+        const properties = stack.properties.map( property=>makeDefinitionType(property));
+        return `{${properties.join(',')}}`;
+    }else if(stack.isTypeObjectPropertyDefinition){
+        const key = stack.key.value();
+        const question = stack.question ? '?' : '';
+        const init = makeDefinitionType(stack.init);
+        return `${key}${question}: ${init}`;
+    }else if(stack.isTypeTupleDefinition){
+        const prefix = stack.prefix;
+        const els = stack.elements.map( item=>makeDefinitionType(item) ).join(', ');
+        return prefix ? `${els}[]` : `[${els}]`;
+    }
+    else{
+        return stack.value();
+    }
+    
+}
+
 function makeGenericity(genericity){
     if(!genericity || !genericity.elements.length)return '';
     const genericElements = genericity.elements.map( item=>{
         if( item.isGenericTypeAssignmentDeclaration ){
-            return `${item.left.value()} = ${item.right.value()}`;
+            return `${item.left.value()} = ${makeDefinitionType(item.right)}`;
         }
         if(item.extends){
             return `${item.valueType.value()} extends ${item.extends.raw()}`
@@ -161,7 +186,6 @@ function makeMethod(stack, isConstructor){
 
 function makeProperty(stack){
     if(!stack.isPropertyDefinition)return null;
-    const dynamic = stack.dynamic;
     const modifier = Utils.getModifierValue(stack)
     if(modifier==='private')return null;
     let property = [];

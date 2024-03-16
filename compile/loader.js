@@ -1,13 +1,12 @@
-const Compiler = require('../lib/core/Compiler');
 const path = require('path');
-const merge  = require("lodash/merge");
 const fs = require('fs');
 const fsExtra = require('fs-extra');
+const hash = require('hash-sum');
 const {emitFileTypes} = require('./types');
 const Lang = require('../lib/core/Lang');
-const Utils = require('../lib/core/Utils');
 const Diagnostic = require('../lib/core/Diagnostic');
 const { reportDiagnosticMessage } = require('../lib/core/Utils');
+const mime = require('mime-types');
 function parseResource(id) {
     const [resourcePath, rawQuery] = id.split(`?`, 2);
     const query = Object.fromEntries(new URLSearchParams(rawQuery));
@@ -18,21 +17,41 @@ function parseResource(id) {
     };
 }
 
-const filter = /\.es(\?|$)/i;
-const assetsFilter = /\.(html|css|less|sass|scss|png|gif|jpeg|jpg|svg|json)$/i
-const defaultLoaderExtensions = {
-    'text':['.html','.svg'],
-    'json':['.json'],
-    'css':['.css','.less','.sass','.scss'],
-    'dataurl':['.png','.gif','.gif','.jpeg','.jpg'],
+function transformError(error){
+    let text = '';
+    let location = null;
+    if(error instanceof Diagnostic) {
+        text = error.message;
+        location = {
+            file:error.file,
+            line:error.range.start.line,
+            column:error.range.start.column, 
+            lineText:'Error code: '+error.code,
+            namespace:'file'
+        };
+    }else if( error && error.text ){
+        text = error.text;
+        location = error.location || null;
+    }else{
+       text = String(error); 
+    }
+    return {
+        text,
+        location
+    }
 }
 
-const loader=(options)=>{
-    
-    const compile = new Compiler(options);
+function base64Encode(file, content){
+    const type = mime.lookup(file);
+    return `data:${type};base64,${content}`;
+}
+
+const filter = /\.es(\?|$)/i;
+const assetsFilter = /\.(css|less|sass|scss|png|gif|jpeg|jpg|svg|svgz|webp|bmp)$/i
+
+const loader=(compile, options)=>{
     const plugins = compile.options.plugins;
-    const loaderExtensions = merge({},defaultLoaderExtensions,options.loaderExtensions);
-    const resolveLoader = {};
+    const hasOwn = Object.prototype.hasOwnProperty;
     const resolvePath = (file, baseDir)=>{
         if(path.isAbsolute(file)){
             return file;
@@ -40,8 +59,11 @@ const loader=(options)=>{
         return path.join(baseDir||compile.workspace, file);
     }
 
-    const normalizePath=(compilation, query={})=>{
-        return compile.normalizeModuleFile(compilation, query.id, query.type, query.file)
+    const normalizePath=(compilation, resource, query={})=>{
+        if( query.vue == void 0){
+            return compile.normalizePath(resource)
+        }
+        return compile.normalizePath(compilation.file);
     }
 
     const getCompilation = (file)=>{
@@ -78,15 +100,6 @@ const loader=(options)=>{
         await emitFileTypes(datamap, outdir);
     }
 
-    Object.keys(loaderExtensions).forEach((loader)=>{
-        if(Array.isArray(loaderExtensions[loader])){
-            const extensions = loaderExtensions[loader];
-            extensions.forEach( ext=>{
-                resolveLoader[ext] = loader
-            });
-        }
-    });
-
     return {
         name:'easescript',
         async setup(build){
@@ -106,6 +119,8 @@ const loader=(options)=>{
             const servers = pluginInstances.filter(item=>item.platform ==='server');
             const compilations = new Set();
             const builder = clients[0];
+            const isProduction = options.mode === 'production' || process.env.NODE_ENV === 'production';
+
             if(!builder){
                 throw new Error('Builder is not exists.')
             }
@@ -157,60 +172,161 @@ const loader=(options)=>{
                         }
                         return {
                             path:'esglobal:'+id,
+                            namespace:'file',
                             external:true
                         }
                     }
                 }
-                return {path:file}
+                return {path:file,namespace:'file'}
             });
 
-            build.onLoad({filter}, args=>{
+            build.onLoad({filter, namespace:'file'}, args=>{
                 return new Promise( async(resolve,reject)=>{
-                    const {resourcePath,query} = parseResource(args.path);
+                    const {resourcePath,resource,query} = parseResource(args.path);
                     const compilation = await compile.ready(resourcePath);
+                    const errors = compilation.errors.filter( error=>error.kind === Diagnostic.ERROR).map(transformError)
+                    if(query.callhook != null && query.action){
+                        try{
+                            const code = await builder.callHook(query.action, compilation, query);
+                            resolve({
+                                contents:code,
+                                loader:'js',
+                                errors
+                            });
+                        }catch(e){
+                            reject(e);
+                        }
+                        return;
+                    }
+
                     compilations.add(compilation);
                     compilation.errors.forEach( error=>{
                         reportDiagnosticMessage(error)
                     });
 
-                    if(options.exitWhenHasErrors){
-                        if(compilation.errors.some(error=>error.kind ===Diagnostic.ERROR)){
-                            reject(new Error(Lang.get(101)));
-                            return;
-                        }
-                    }
+                    let loader = query.type === 'style' ? 'css' : 'js';
 
-                    builder.build(compilation,(error)=>{
+                    builder.build(compilation, async (error)=>{
                         if(error){
                             reject(error);
                         }else{
-                            const filepath = normalizePath(compilation, query);
+
+                            const filepath = normalizePath(compilation, resource, query);
                             let code = builder.getGeneratedCodeByFile(filepath);
-                            let sourcemap = builder.getGeneratedSourceMapByFile(compilation.file);
-                            if(sourcemap){
-                                code += '\n//# sourceMappingURL='+JSON.stringify(sourcemap);
+                            let sourcemap = builder.getGeneratedSourceMapByFile(filepath);
+
+                            if(query.type === 'embedAssets'){
+                                loader = 'text';
                             }
+
+                            if(query && query.type === 'style' && query.file){
+                                const lang = query.file.split('.').pop();
+                                const preprocess = options.styles.preprocess;
+                                if(hasOwn.call(preprocess, lang)){
+                                    const preprocessor = options.styles.preprocess[lang];
+                                    if(preprocessor){
+                                        const result = await preprocessor({
+                                            source:code,
+                                            filename:resourcePath,
+                                            resource,
+                                            sourcemap,
+                                            scopeId:query.scopeId,
+                                            lang,
+                                            isProd:isProduction
+                                        });
+                                        if(result){
+                                            if(Array.isArray(result.errors)){
+                                                errors.push( ...result.errors.map(transformError) );
+                                            }
+                                            code =result.code;
+                                            if(result.map || result.sourcemap){
+                                                sourcemap = result.sourcemap || result.map;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if( !query.type ){
+                                if(sourcemap){
+                                    const extname = path.extname(resourcePath);
+                                    const name = path.basename(resourcePath, extname);
+                                    const key = hash(resource);
+                                    const basedir = path.join(outdir,'.map');
+                                    fsExtra.mkdirpSync(basedir);
+                                    let mappath = path.join(basedir, `${name}-${key}${extname}.map`);
+                                    fs.writeFileSync(mappath,JSON.stringify(sourcemap));
+                                    mappath = compile.normalizePath(mappath)
+                                    code += '\n//# sourceMappingURL='+mappath;
+                                }
+                            }
+                            
                             resolve({
                                 contents:code,
-                                loader:query.type === 'style' ? 'css' : 'js',
-                            })
+                                loader,
+                                errors
+                            });
                         }
                     })
                 })
             });
 
-            build.onResolve({filter:assetsFilter}, async args => {
-                return {path:resolvePath(args.path)}
-            });
+            build.onLoad({filter:assetsFilter, namespace:'file'}, async args=>{
+                let resolvePath = args.path;
+                if( fs.existsSync(resolvePath) ){
+                    let errors = [];
+                    let code = fs.readFileSync(resolvePath);
+                    let name = path.extname(resolvePath).toLowerCase();
+                    let lang = name.slice(1);
+                    let loader = options.loaders[name] || 'file';
+                    let base64Callback = options.assets.base64Callback;
+                    if(base64Callback && base64Callback(resolvePath)===true){
+                        code = base64Encode(resolvePath, code.toString('base64'));
+                        loader = 'text';
+                    }
 
-            build.onLoad({filter:assetsFilter}, async args=>{
-                let code = fs.readFileSync(args.path)
-                let name = path.extname(args.path).toLowerCase();
-                return {
-                    contents:code,
-                    loader:resolveLoader[name] || 'file',
+                    let preprocess = options.styles.preprocess;
+                    if(hasOwn.call(preprocess,lang)){
+                        let preprocessor = preprocess[lang];
+                        const result = await preprocessor({
+                            source:code,
+                            filename:resolvePath,
+                            resource:resolvePath,
+                            lang:lang,
+                            isProd:isProduction
+                        });
+                        if(result){
+                            if(Array.isArray(result.errors)){
+                                errors.push( ...result.errors.map(transformError) );
+                            }
+                            code =result.code;
+                        }
+                    }
+
+                    return {
+                        contents:code,
+                        loader:loader,
+                        errors
+                    }
                 }
             });
+
+            Object.keys(options.resolve.alias).forEach( key=>{
+                const filter = new RegExp(key);
+                const replacePath = options.resolve.alias[key];
+                build.onResolve({filter, namespace:'file'}, async args=>{
+                    if(args.kind!=='import-statement')return;
+                    let resolvePath = args.path;
+                    let path2 = resolvePath.replace(filter, (prefix)=>{
+                        return path.join(replacePath,prefix);
+                    });
+                    let result = await build.resolve(path2, {kind:args.kind,resolveDir:path.dirname(path2)});
+                    if(result && !result.errors.length){
+                        return result;
+                    }
+                })
+            });
+
         }
     }
 }

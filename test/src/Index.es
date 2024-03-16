@@ -122,8 +122,8 @@ class Index{
     }
 
     getUnionType(){
-        const list:{name:string, age:number} = {name:'ssss', age:1};
-        return list || {name:'sss'}
+        const list:{name:string, age:number} = {name:`ssss`, age:1};
+        return list || {name:"sss"}
     }
 
 
