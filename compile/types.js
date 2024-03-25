@@ -561,7 +561,7 @@ function makeModule(module, globals, emitFile){
     if(imports.length>0){
         contents.unshift( imports.join('\n\t') )
     }
-
+    
     return makeComments(stacks.flatMap(stack=>stack.comments), contents.join('\n'), '\t');
 }
 
@@ -621,7 +621,8 @@ async function emitFileTypes(datamap, buildDir){
     });
    
     const outfile = path.join(buildDir, 'index.d.es');
-    fs.writeFileSync(outfile, codes.join('\n\n'))
+    let content = codes.join('\n\n').replace(/\r/g,'');
+    fs.writeFileSync(outfile, content, {encoding:"utf-8"});
 }
 
 

@@ -476,8 +476,6 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
            expect( cccww.age ).toBe( 30 );
         })
 
-
-
         it(`class Generics`,()=>{
             let obj = this.getTestObject(true)
             var bd:Test<int,string> = obj;
