@@ -254,10 +254,10 @@ const loader=(compile, options)=>{
                                     const key = hash(resource);
                                     const basedir = path.join(outdir,'.map');
                                     fsExtra.mkdirpSync(basedir);
+                                    sourcemap = JSON.stringify(sourcemap);
                                     let mappath = path.join(basedir, `${name}-${key}${extname}.map`);
-                                    fs.writeFileSync(mappath,JSON.stringify(sourcemap));
-                                    mappath = compile.normalizePath(mappath)
-                                    code += '\n//# sourceMappingURL='+mappath;
+                                    fs.writeFileSync(mappath,sourcemap);
+                                    code += '\n//# sourceMappingURL=data:application/json;base64,'+Buffer.from(sourcemap).toString('base64');
                                 }
                             }
                             

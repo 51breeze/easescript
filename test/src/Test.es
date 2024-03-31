@@ -29,6 +29,14 @@ import  config, {child} from './config.es';
 @Runtime(server);
 public class Test<U,B=string> extends Person<string> implements Iterator<number>, TestInterface {
 
+
+    use static {
+        /**
+        * find pos 
+        */
+        find(name:string):number;
+    }
+
      /**
     * @public
     * the is static 

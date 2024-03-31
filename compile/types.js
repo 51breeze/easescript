@@ -162,12 +162,12 @@ function makeComments(comments, descriptor, indent='\t\t'){
     }
 }
 
-function makeMethod(stack, isConstructor){
+function makeMethod(stack, isConstructor, indent='\t\t'){
     if(!stack.isMethodDefinition)return null;
     const modifier = Utils.getModifierValue(stack)
     if(modifier==='private')return null;
     let method = [];
-    let key = stack.key.value();
+    let key = stack.dynamicMethod ? `[${stack.key.value()}${makeRawType(stack.dynamicType.type())}]` : stack.key.value();
     if(stack.static){
         method.push('static ')
     }
@@ -181,15 +181,15 @@ function makeMethod(stack, isConstructor){
     }
     method.push(`${key}`)
     method.push(makeFunction(stack.expression, isConstructor))
-    return makeComments(stack.comments, method.join(''));
+    return makeComments(stack.comments, method.join(''), indent);
 }
 
-function makeProperty(stack){
+function makeProperty(stack, indent='\t\t'){
     if(!stack.isPropertyDefinition)return null;
     const modifier = Utils.getModifierValue(stack)
     if(modifier==='private')return null;
     let property = [];
-    let key = stack.value();
+    let key = stack.dynamic ? `[${stack.value()}${makeRawType(stack.dynamicKeyType)}]` : stack.value();
     if(stack.static){
         property.push('static ')
     }
@@ -200,11 +200,6 @@ function makeProperty(stack){
         property.push(`const `)
     }
 
-    if(stack.dynamic){
-       const keyType = stack.dynamicKeyType;
-       return makeComments(stack.comments,`[${key}${makeRawType(keyType)}]${makeRawType(stack.type())}`);
-    }
-
     const type = makeRawType(stack.type());
     const init = stack.init;
     if(init && init.isLiteral){
@@ -212,7 +207,7 @@ function makeProperty(stack){
     }else{
         property.push(`${key}${type}`)
     }
-    return makeComments(stack.comments, property.join(''));
+    return makeComments(stack.comments, property.join(''), indent);
 }
 
 function makeDeclarator(stack){
@@ -459,6 +454,25 @@ function sortMembers( bodys ){
     });
 }
 
+function makeDefineSlotAnnotation(module){
+    const slots = module.jsxDeclaredSlots;
+    if(!slots)return;
+    const items = [];
+    slots.forEach((jsx,key)=>{
+        const args = jsx.openingElement.attributes.map( attr=>{
+            const key = attr.name.value();
+            const type =  attr.value ? makeRawType(attr.value) : null;
+            return type ? key+type : key;
+        });
+        if(args.length>0){
+            items.push(`@Define(slot, ${key}, ${args.join(', ')});`)
+        }else{
+            items.push(`@Define(slot, ${key});`)
+        }
+    });
+    return items;
+}
+
 function makeModule(module, globals, emitFile){
     if(!module.used)return;
     if(!module.isModule)return;
@@ -500,13 +514,49 @@ function makeModule(module, globals, emitFile){
     
     const contents = [];
     const bodys = [];
+    const usings = [];
     const memmbers = Object.create(null);
+    const defineSlots = makeDefineSlotAnnotation(module);
+    if(defineSlots){
+        contents.push( ...defineSlots );
+    }
+
     contents.push(`\tdeclare ${kind} ${id}${genericity} ${inherit}${implements}{`);
 
     stacks.forEach( stack=>{
         if(stack.isEnumDeclaration){
             return;
         }
+
+        if(stack.usings && (stack.isDeclaratorDeclaration || stack.isClassDeclaration) ){
+            stack.usings.forEach(stack=>{
+                if(stack.isUseStatement){
+                    const _keywords = stack.keywords.map( key=>key.raw() );
+                    const _extends = stack.extends.map( key=>key.raw() );
+                    const _body = sortMembers(stack.body.map( stack=>{
+                        if(stack.isMethodDefinition){
+                            getDependencies(stack, dependencies);
+                            const result = makeMethod(stack, stack.isConstructor, '\t\t\t');
+                            if(result){
+                                return [result, stack]
+                            }
+                        }else if(stack.isPropertyDefinition){
+                            getDependencies(stack, dependencies);
+                            const result = makeProperty(stack, '\t\t\t');
+                            if(result){
+                               return [result,stack]
+                            }
+                        }
+                    }).filter(Boolean)).map(item=>item[0]);
+                    if(_extends.length>0){
+                        usings.push(`\t\tuse ${_keywords.join(', ')} extends ${_extends.join(', ')}{\n${_body.join('\n')}\n\t\t}`);
+                    }else{
+                        usings.push(`\t\tuse ${_keywords.join(', ')}{\n${_body.join('\n')}\n\t\t}`);
+                    }
+                }
+            })
+        }
+
         stack.body.forEach( stack=>{
             let descriptors = memmbers[stack.value()] || (memmbers[stack.value()]=[]);
             descriptors.push(stack);
@@ -550,7 +600,8 @@ function makeModule(module, globals, emitFile){
         }
     });
 
-    contents.push(sortMembers(bodys).map(item=>item[0]).join('\n'))
+    contents.push( ...usings );
+    contents.push( ...sortMembers(bodys).map(item=>item[0]) )
     contents.push(`\t}`);
 
     let imports = genImports(stacks.flatMap((stack)=>stack.imports), module, dependencies);
