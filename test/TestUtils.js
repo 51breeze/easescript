@@ -39,17 +39,19 @@ function getExpCallArgmentString(body, pos, index){
     }
 }
 
-function createError(errors, msg='', code=0, kind=0){
+function createError(errors, msg='', code=0, kind=0, line=0){
     const error = errors.find( item=>{
         if(kind >= 0 && item.kind !== kind )return false;
         if(code >= 0 && item.code !== code )return false;
+        if(line > 0 && item.range?.start?.line !== line)return false;
         if(msg && item.message.replace(/[\s\r\n]+/g,'') !== msg.replace(/[\s\r\n]+/g,'') )return false;
         return true
     });
     const index = errors.indexOf(error);
     if( index >= 0 ){
+        const error = errors[index];
         errors.splice(index,1);
-        createError(errors, msg, code, kind)
+        createError(errors, msg, code, kind, error.range?.start?.line)
     }
 
     if( error ){

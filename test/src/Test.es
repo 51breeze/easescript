@@ -30,12 +30,12 @@ import  config, {child} from './config.es';
 public class Test<U,B=string> extends Person<string> implements Iterator<number>, TestInterface {
 
 
-    use static {
-        /**
-        * find pos 
-        */
-        find(name:string):number;
-    }
+    // use static {
+    //     /**
+    //     * find pos 
+    //     */
+    //     find(name:string):number;
+    // }
 
      /**
     * @public

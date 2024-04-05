@@ -20,6 +20,8 @@ class Index{
     constructor(){
         this.concat('111');
         this.ts({name:'11'})
+        callmethod();
+        new callmethod();
     }
 
     concat( name:AddressReferenceType<string> ){

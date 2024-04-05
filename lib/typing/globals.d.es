@@ -1,5 +1,5 @@
 declare Object{
-    
+
    static assign<T,T1>(target:T,v1:T1):T & T1;
    static assign<T,T1,T2>(target:T,v1:T1,v2:T2):T & T1 & T2;
    static assign<T,T1,T2,T3>(target:T,v1:T1,v2:T2,v3:T3):T & T1 & T2 & T3;
@@ -71,20 +71,20 @@ declare interface RegExpExecArray extends Array<string> {
    var input: string;
 }
 
-declare Array<T> implements Iterator<T>, Iterable{
+declare Array<T=any> implements Iterator<T>, Iterable{
 
    /**
    * Creates an array from an array-like object.
    * @param arrayLike An array-like object to convert to an array.
    */
-   static from<T>(target:Iterator<T> | ArrayLike<T>):T[];
-   static from<T,U>(target:Iterator<T> | ArrayLike<T>,callback?:(value:T,key:number)=>U):U[];
+   static from<T=any>(target:Iterator<T> | ArrayLike<T>):T[];
+   static from<T=any,U=any>(target:Iterator<T> | ArrayLike<T>,callback?:(value:T,key:number)=>U):U[];
 
    /**
    * Returns a new array from a set of elements.
    * @param items A set of elements to include in the new array object.
    */
-   static of<T>(...items: T[]): T[];
+   static of<T=any>(...items: T[]): T[];
 
    static isArray(target:any):boolean;
 
@@ -1576,7 +1576,7 @@ declare class DataView {
     setUint32(byteOffset: number, value: number, littleEndian?: boolean): void;
 }
 
-declare class Map<K,V>{
+declare class Map<K=any,V=any>{
    constructor(entries?:[K,V][] | null):Map<K, V>;
    clear(): void;
    delete(key: K): boolean;
@@ -1603,7 +1603,7 @@ declare class Map<K,V>{
 }
 
 
-declare class Set<T>{
+declare class Set<T=any>{
    constructor(values?:T[] | null):Set<T>;
    add(value: T): this;
    clear(): void;
@@ -1629,7 +1629,7 @@ declare class Set<T>{
    const size: number;
 }
 
-declare interface WeakMap<K extends object, V> {
+declare interface WeakMap<K extends object, V=any> {
    constructor<K extends object, V = any>(entries?: [K, V][] | null): WeakMap<K, V>;
    delete(key: K): boolean;
    get(key: K): V | null;
@@ -1817,11 +1817,12 @@ declare Double extends Float{
    constructor( value );
 }
 
-declare interface VNode extends Object{
+declare interface VNode{
    type:string;
    props:{[key:string]:any};
    children:VNode[];
    key:string|number;
+   [key:string]:any;
 }
 
 declare const NaN:Number;

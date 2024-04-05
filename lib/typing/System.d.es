@@ -108,7 +108,7 @@ declare System{
     * @param key 一个字符串标识符
     * 如果指定的key不存在则返回null,否则返回已设置的值。
     */
-    static getConfig<T>(key:string):T;
+    static getConfig<T=any>(key:string):T;
 
     /**
     * 生成一个路由的完整路径

@@ -2,6 +2,7 @@
 /package-lock.json
 /test
 /make.js
+/build
 yarn.lock
 .babelrc
 .gitattributes

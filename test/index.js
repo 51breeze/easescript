@@ -15,6 +15,7 @@ describe('compile file', function() {
         compilation = await creator.startByFile('./Test.es');
         if(compilation){
             errors = compilation.compiler.errors;
+            module = compilation.getModuleById("Test");
         }
     });
 
@@ -40,6 +41,14 @@ describe('compile file', function() {
         stack = jsxElement.body.body[2].declarations[0].init;
         expect([]).toEqual( stack.openingElement.attributes );
         expect('div').toEqual( stack.openingElement.name.value() );
+
+
+        const start = module.getMember('testGenerics');
+        let body = start.body.body;
+        expression = body[14].declarations[0].init
+
+        // expect('object').toEqual(expression.type().toString())
+        // expect('<string>(name: string)=>object').toEqual( expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()))
         
     })
     

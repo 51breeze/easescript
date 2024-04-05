@@ -96,8 +96,8 @@ package net{
 
         static create(config?:HttpConfig):Http;
         static isCancel(value: any): boolean;
-        static all<T>(values: (T | Promise<T>)[]): Promise<T[]>;
-        static spread<T, R>(callback: (...args: T[]) => R): (array: T[]) => R;
+        static all<T=any>(values: (T | Promise<T>)[]): Promise<T[]>;
+        static spread<T=any, R=any>(callback: (...args: T[]) => R): (array: T[]) => R;
 
         constructor(config: HttpConfig);
 

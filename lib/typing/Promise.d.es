@@ -6,7 +6,7 @@ declare Promise<T=any>{
     * @param values An iterable of Promises.
     * @returns A new Promise.
     */
-    static all<T>(values: Iterator<any>): Promise<T[]>;
+    static all<T=any>(values: Iterator<any>): Promise<T[]>;
 
     /**
     * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
@@ -14,7 +14,7 @@ declare Promise<T=any>{
     * @param values An iterable of Promises.
     * @returns A new Promise.
     */
-    static race<T>(values: Iterator<any>): Promise<T>;
+    static race<T=any>(values: Iterator<any>): Promise<T>;
 
         /**
     * Creates a Promise that is resolved with an array of results when all
@@ -22,21 +22,21 @@ declare Promise<T=any>{
     * @param values An array of Promises.
     * @returns A new Promise.
     */
-    static allSettled<T>(values:Iterator<any>): Promise<T[]>;
+    static allSettled<T=any>(values:Iterator<any>): Promise<T[]>;
 
     /**
     * Creates a new rejected promise for the provided reason.
     * @param reason The reason the promise was rejected.
     * @returns A new rejected Promise.
     */
-    static reject<T>(reason?:T): Promise<T>;
+    static reject<T=any>(reason?:T): Promise<T>;
 
     /**
     * Creates a new resolved promise for the provided value.
     * @param value A promise.
     * @returns A promise whose internal state matches the provided promise.
     */
-    static resolve<T>(value?:T): Promise<T>;
+    static resolve<T=any>(value?:T): Promise<T>;
 
     /**
     * Creates a new Promise.

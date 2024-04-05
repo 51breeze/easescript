@@ -43,9 +43,11 @@ describe('test GenericConstraint', function() {
         expect(error).toEqual(result);
 
         [error, result] = TestUtils.createError(errors,`'name1000' is not defined`, 1013);
+        TestUtils.createError(errors,`'name1000' is not defined`, 1013)
         expect(error).toEqual(result);
 
         [error, result] = TestUtils.createError(errors,`'age' is not defined`, 1013);
+        TestUtils.createError(errors,`'age' is not defined`, 1013);
         expect(error).toEqual(result);
 
         // [error, result] = TestUtils.createError(errors,`Property 'age' is not exists`, 1080);

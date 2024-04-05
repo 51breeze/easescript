@@ -1279,3 +1279,15 @@ declare interface PropertyDescriptor {
     get?(): any;
     set?(v: any): void;
 }
+
+declare interface CallMethod<B>{
+    <T=any>(name:T):object
+    <T extends string>(name:T):object;
+    new<T>(name:T):Object
+    new(name):object
+    new(name:B, arg:number):boolean
+    (name:B, arg:number):boolean
+}
+
+declare const callmethod = CallMethod;
+declare const callmethod2:CallMethod<string>;
