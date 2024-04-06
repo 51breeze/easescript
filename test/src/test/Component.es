@@ -8,7 +8,7 @@ package test{
         get skin(){
             const instance = this.skinInstance;
             if(instance)return instance;
-            return this.skinInstance = new this.skinClass(this);
+            return this.skinInstance = new this.skinClass(10);
         }
 
         set skinClass(value:class< Array<T> > ){

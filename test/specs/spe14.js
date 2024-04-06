@@ -68,6 +68,13 @@ describe('test Callable', function() {
 
     });
 
+    it('globals', function(){
+        const start = module.getMember('globals');
+        let body = start.body.body;
+        let expression = body[0].expression;
+        expect('string').toEqual(expression.type().toString())
+    });
+
     it('should compiler error', function() {
         let [error, result] = TestUtils.createError(errors,`Argument of type 'uint' is not assignable to parameter of type 'string'`, 1002);
         expect(error).toEqual(result);

@@ -11,8 +11,8 @@ declare Object{
    static keys(value:object):string[];
    static entries<T=any>(value:object):[string,T][];
 
-   @Callable
    constructor(value?:any);
+   (value:any):object;
 
    /** Returns a string representation of an object. */
    toString(): string;
@@ -88,8 +88,12 @@ declare Array<T=any> implements Iterator<T>, Iterable{
 
    static isArray(target:any):boolean;
 
-   @Callable
-   constructor(...elements);
+    new(arrayLength?: number): any[];
+    new <T>(arrayLength: number): T[];
+    new <T>(...items: T[]): T[];
+    (arrayLength?: number): any[];
+    <T>(arrayLength: number): T[];
+    <T>(...items: T[]): T[];
 
    //dynamic elements
    [index:number]:T;
@@ -340,8 +344,8 @@ declare class Number {
    static parseFloat( value:any ):number;
    static parseInt( value:any ):number;
 
-   @Callable
-   constructor( value:any );
+   constructor(value:any);
+   (value:any):number;
 
    /**
      * Returns a string representation of an object.
@@ -495,9 +499,8 @@ package Intl {
 declare class String implements Iterator<string>, Iterable{
 
    static fromCharCode(...codes: number[]): string;
-
-   @Callable
-   constructor( value );
+   constructor(value:any);
+   (value:any):string;
    
    /** Returns the length of a String object. */
    get length():uint;
@@ -909,7 +912,6 @@ declare class Function {
      * Creates a new function.
      * @param args A list of arguments the function accepts.
      */
-    //@Callable
     constructor(...args: string[]);
 
     /**
@@ -1808,7 +1810,7 @@ declare Uint extends Int{
 
 declare Boolean{
    constructor( value:any );
-   
+   (value:any):boolean
    /** Returns the primitive value of the specified object. */
    valueOf(): boolean;
 }
@@ -1844,6 +1846,7 @@ declare type any    = any;
 declare type nullable = nullable;
 declare type void = void;
 declare type never = never;
+declare type Record<T=any> = {[key:string]:T}
 
 @Runtime(client);
 declare function setTimeout(callback: (...args: any[]) => void, ms: number, ...args: any[]):int;

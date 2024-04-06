@@ -16,9 +16,11 @@ public class Callable{
         //should error
         new callmethod2(true, 6666)
         callmethod2('true', 6666)
+        
+    }
 
-        const ma = new Map([[1,'1']])
-        ma.set(1,'1')
+    globals(){
+        String('')
     }
   
 }
