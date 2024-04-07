@@ -63,7 +63,7 @@ class Generics{
         Array.from( bs , (v, k)=>{
             const b = v[0]
             b.toFixed(2)
-            return 1
+            return String(b)
          })
         Array.of(bs)
         String('')

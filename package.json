@@ -1,7 +1,7 @@
 {
   "name": "easescript",
-  "version": "0.5.6",
-  "description": "EaseScript",
+  "version": "0.6.0",
+  "description": "easescript is compiler for web development",
   "main": "lib/index.js",
   "scripts": {
     "version": "node ./bin/es.js -V",
@@ -9,12 +9,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/51breeze/EaseScript.git"
+    "url": "git+https://github.com/51breeze/easescript.git"
   },
   "keywords": [
-    "es",
-    "ease",
-    "script",
+    "easescript",
     "EaseScript",
     "web"
   ],
@@ -22,9 +20,9 @@
   "author": "Jun Ye",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/51breeze/EaseScript/issues"
+    "url": "https://github.com/51breeze/easescript/issues"
   },
-  "homepage": "https://github.com/51breeze/EaseScript#readme",
+  "homepage": "https://github.com/51breeze/easescript#readme",
   "dependencies": {
     "acorn": "^7.3.1",
     "acorn-jsx": "^5.2.0",
