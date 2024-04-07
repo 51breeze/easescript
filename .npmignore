@@ -7,3 +7,4 @@ yarn.lock
 .babelrc
 .gitattributes
 .vscode
+es.config.js
