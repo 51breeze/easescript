@@ -104,22 +104,26 @@ describe('test Generics', function() {
 
         expression = body[2].expression;
         let fun = expression.getDeclareFunctionType(expression.description());
-        expect('<[uint], string>(target: Iterator<[uint]> | ArrayLike<[uint]>, callback?: (value: [uint], key: number)=>string)=>string[]').toEqual(
+        expect('<uint[], string>(target: Iterator<uint[]> | ArrayLike<uint[]>, callback?: (value: uint[], key: number)=>string)=>string[]').toEqual(
             fun.type().toString(expression.getContext())
         );
-        expect('(v: [uint], k: number)=>string').toEqual(
+        expect('(v: uint[], k: number)=>string').toEqual(
             expression.arguments[1].type().toString(expression.arguments[1].getContext(), {inferTypeValueFlag:true})
         );
 
-        // let ctx = expression.arguments[1].params[0].getContext();
+        expression = expression.arguments[1].body.body[0].declarations[0];
+        expect('uint').toEqual(expression.init.type().toString())
+
+        // let ctx = expression.init.object.getContext();
         // while(ctx){
         //     ctx.dataset.forEach((v,k)=>{
         //         console.log( k,  v.type().toString() )
         //     });
         //     ctx = ctx.parent;
-        //     console.log( ctx.stack.toString() )
+        //     if(ctx && ctx.stack){
+        //         console.log( ctx.stack.toString() )
+        //     }
         // }
-        
 
         expression = body[3].expression;
         expect('uint[][]').toEqual(expression.type().toString())

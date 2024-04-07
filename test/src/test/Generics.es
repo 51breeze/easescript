@@ -60,7 +60,11 @@ class Generics{
     testStaticArray(){
         var bs = [1]
         bs.push(1)
-        Array.from( bs , (v, k)=>String(v[0]));
+        Array.from( bs , (v, k)=>{
+            const b = v[0]
+            b.toFixed(2)
+            return 1
+         })
         Array.of(bs)
         String('')
     }
