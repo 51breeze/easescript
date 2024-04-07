@@ -124,6 +124,8 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
     public computed = false
 
     fromData:object={};
+
+    new(ss:string[]):Test<string[], string>;
     
     /**
     * a constructor method
@@ -140,6 +142,8 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         // if( 1 < 2 && 2 > 3 ){
 
         // }
+
+        const ss = new Test( ['ss'])
 
         var b:DynamicProperty = {};
 
