@@ -11,6 +11,7 @@ import Types;
 import Index;
 import Reflect;
 import unit.Index as UIndex;
+import components.List;
 
 @Embed(Img='../index.html');
 @Embed(Imgs='./Index.es');

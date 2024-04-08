@@ -2,9 +2,9 @@ const Compiler = require("../lib/core/Compiler");
 const Diagnostic = require("../lib/core/Diagnostic");
 const Compilation = require("../lib/core/Compilation");
 const path =require("path");
-
 const _compiler = new Compiler(Object.assign({
     debug:false,
+    throwParseError:true,
     lang:'en-US',
     diagnose:true,
     output:path.join(__dirname,"./build"),
@@ -13,6 +13,19 @@ const _compiler = new Compiler(Object.assign({
         locations:true
     }
 },{}));
+
+
+//  const fs = require("fs");
+//  const _compilation = new Compilation(_compiler)
+
+// _compilation.parseAst( fs.readFileSync(path.join(__dirname, 'src/test/Component.es')).toString() )
+
+
+//_compilation.parseAst(`` )
+
+
+
+
 
 let initialize = false;
 async function ready(){
@@ -24,6 +37,9 @@ async function ready(){
         ],{scope:'local',inherits:[]});
     }
 }
+
+// ready();
+// return;
 
 class Creator {
     constructor(){

@@ -1,4 +1,3 @@
-
 declare interface ClassDescriptorConfig{
     type:number
     class:class<any>

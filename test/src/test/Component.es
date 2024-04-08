@@ -26,15 +26,12 @@ package test{
     declare interface ComponentInterface{
 
     }
+}
 
-    <style>
+ <style>
     
         body{
             font-size:12px
         }
     
     </style>
-
-
-
-}

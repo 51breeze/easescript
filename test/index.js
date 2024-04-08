@@ -55,3 +55,36 @@ describe('compile file', function() {
 });
 
 
+
+// describe('compile file', function() {
+//     const creator = new compiler.Creator();
+//     let compilation = null;
+//     let errors = [];
+//     let module = null;
+//     beforeAll(async function() {
+//         compilation = await creator.startByFile('./components/List.es');
+//         if(compilation){
+//             errors = compilation.compiler.errors;
+//             module = compilation.getModuleById("Test");
+//         }
+//     });
+
+//     afterAll(()=>{
+//         errors.forEach( item=>{
+//             if( item.kind <= 1 && compilation.errors.includes(item) ){
+//                 //fail( item.toString() )
+//             }
+//         });
+//         compilation = null;
+//     })
+
+//     it('should compile success and build', async function() {
+//         if(!compilation)return;
+//         expect('Expected 0 errors').toContain( compilation.errors.filter(item=>item.kind===0||item.kind===1).length );
+//     })
+
+    
+// });
+
+
+
