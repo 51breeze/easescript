@@ -13,6 +13,7 @@ declare Object{
 
    constructor(value?:any);
    (value:any):object;
+   <T>(value:T):T;
 
    /** Returns a string representation of an object. */
    toString(): string;

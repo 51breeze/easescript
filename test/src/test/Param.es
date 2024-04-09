@@ -98,8 +98,11 @@ public class Param{
     }
 
     call<T>(i,b:T){
-
+        const cc = this.args(1)
         return b;
+    }
 
+    args(a){
+        return [arguments.length, arguments[2], arguments, a];
     }
 }
