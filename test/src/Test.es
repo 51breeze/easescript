@@ -1002,6 +1002,17 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         console.log(11)
     }
 
+    static _langDefaultClass:class<Test<string,string>> = Test
+    static instances:Map<any,Test<string,string>> = new Map();
+    static use<T extends class<Test<string,string>>>(langClass?:T){
+        langClass = langClass||_langDefaultClass;
+        let instance = instances.get(langClass)
+        if( !instance ){
+            instances.set(langClass, instance =new langClass() )
+        }
+        return instance;
+    }
+
 }
   
 import Test;
