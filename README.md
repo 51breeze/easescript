@@ -1,8 +1,18 @@
 # EaseScript
 
-EaseScript 是一个类型脚本编译器，目的是用ES6的语法编译成多个不同目标的脚本语言，来减轻开发者的学习成本和开发速度。它与 typescript 类似，同样具有类型推导来约束代码但有着不同的语言特性。
+**EaseScript 是一个类型推导脚本编译器，目的是用ES6的语法编译成多个不同运行环境的脚本语言。**
 
-## 一、语法
+**EaseScript 将通用的WEB技术栈集成在一起按需构建打包，使用时开箱即用无需过多配置。在与后端API交互中直接实现互通无需中间请求配置， 用ES6语法便可完成前后端的所有工作。 为开发者提供了一个愉悦的开发方式**
+
+## 快速开始
+
+  ```js
+  npm install es-installer -g
+  ```
+
+  安装成功后在控制台输入 `esi --init` 按提示操作即可
+
+## 语法
 语法文档，请参照 https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference  
 
 ### 1、不支持的语法：
