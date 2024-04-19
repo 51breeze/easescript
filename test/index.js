@@ -95,7 +95,7 @@ describe('Glob', function() {
     });
 
     it('test', function() {
-        globInstance.addRule('***', 'test/{...}/{basename}')
+        globInstance.addRule('****', 'test/{...}/{basename}')
         globInstance.addRule('**/*.json', 'json/{...}/{basename}')
         globInstance.addRule('test/**/*.es', 'test/{...}/../{basename}')
         globInstance.addRule('test/**/*.*', 'test/{...}/../all/{basename}')
@@ -104,9 +104,12 @@ describe('Glob', function() {
         globInstance.addRule('**/apis/*/model/**/*.*', 'test/apis/server/model/{...globs[0]}/{globs[1]}/{globs[2]}/{basename}')
         globInstance.addRule('**/apis/*/*/*.js', 'test/js/{globs[1]}-{globs[2]}{basename}')
         globInstance.addRule('com/**/test', 'com/{...}/test/ok')
+        
         globInstance.addRule('com/*/test/api/*', 'com/{...}/test/api/{1}')
-        globInstance.addRule('com/*/test/api/**', 'coms/{0}/test/api/{globs[1]}')
-        globInstance.addRule('com/**/apis/**', 'comss/{-2}/{0}/test/api/{globs[1]}')
+
+        globInstance.addRule('com/*/test/api/**', 'coms/{0}/test/api/{globs[1]}/{filename}')
+        globInstance.addRule('com/**/apis/**', 'comss/{-2}/{0}/test/api/{globs[1]}/{filename}')
+        globInstance.addRule('element-ui/packages/***', 'element-plus/es/components/{...}/{filename}')
 
         expect('test/src/api/http/Index.es').toEqual( globInstance.dest('src/api/http/Index.es') )
         expect('test/src/api/Index.es').toEqual( globInstance.dest('test/src/api/http/Index.es') )
@@ -119,10 +122,12 @@ describe('Glob', function() {
         expect('test/js/hash-prodindex.js').toEqual( globInstance.dest('test/prod/apis/hash/prod/index.js') )
 
         expect('com.test.http.test.ok').toEqual( globInstance.dest('com/test/http/test', {delimiter:'.'}) )
-        expect('com.http.dev.test.api.dev').toEqual( globInstance.dest('com/http/test/api/dev', {delimiter:'.'}) )
+        expect('com.http.test.api').toEqual( globInstance.dest('com/http/test/api/dev', {delimiter:'.'}) )
 
         expect('coms.http.test.api.dev.cc.name').toEqual( globInstance.dest('com/http/test/api/dev/cc/name', {delimiter:'.'}) )
-        expect('comss.cc.http.test.api.dev.cc.name').toEqual( globInstance.dest('com/http/test/apis/dev/cc/name', {delimiter:'.'}) )
+        expect('comss.dev.http.test.api.dev.cc.name').toEqual( globInstance.dest('com/http/test/apis/dev/cc/name', {delimiter:'.'}) )
+
+        expect('element-plus/es/components/from').toEqual( globInstance.dest('element-ui/packages/from') )
 
     })
 

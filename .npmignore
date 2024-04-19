@@ -3,6 +3,7 @@
 /test
 /make.js
 /build
+/scripts
 yarn.lock
 .babelrc
 .gitattributes

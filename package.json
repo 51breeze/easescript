@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "version": "node ./bin/es.js -V",
-    "test": "jasmine ./test/index.js"
+    "test": "jasmine ./test/index.js",
+    "build": "node scripts/build.js"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,8 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "jasmine": "^3.7.0"
+    "jasmine": "^3.7.0",
+    "esbuild": "^0.17.11",
+    "esbuild-plugin-copy": "^2.1.0"
   }
 }
