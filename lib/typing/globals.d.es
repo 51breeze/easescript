@@ -1822,10 +1822,10 @@ declare Double extends Float{
 
 declare interface VNode{
    type:string;
-   props:{[key:string]:any};
-   children:VNode[];
-   key:string|number;
-   [key:string]:any;
+   props?:{[key:string]:any};
+   children?:VNode[];
+   key?:string|number;
+   [key:string]?:any;
 }
 
 declare const NaN:Number;
