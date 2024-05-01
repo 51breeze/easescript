@@ -12,6 +12,7 @@ import Index;
 import Reflect;
 import unit.Index as UIndex;
 import components.List;
+import components.Child;
 
 @Embed(Img='../index.html');
 @Embed(Imgs='./Index.es');
@@ -994,6 +995,10 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         });
         
         return dd;
+    }
+
+    testComponent(){
+        return new Child()
     }
 
 

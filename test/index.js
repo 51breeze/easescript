@@ -49,6 +49,10 @@ describe('compile file', function() {
 
         // expect('object').toEqual(expression.type().toString())
         // expect('<string>(name: string)=>object').toEqual( expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()))
+
+       // const res = creator.compiler.parseResourceId({file:'/components/List.es'}, {index:0,type:'style',lang:'css','file.css':''})
+
+
         
     })
     

@@ -4,7 +4,7 @@ package components{
             return <div sss="ss">
                 <div>=========List Component===</div>
                 <div>
-                    <slot:default />
+                    <slot:default items={['name']} name={"test"} />
                 </div>
             </div>
         }
