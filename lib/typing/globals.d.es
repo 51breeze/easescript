@@ -1931,10 +1931,20 @@ import md5 from 'blueimp-md5';
 declare function md5(string:string):string;
 
 package annotation{
+    
     declare interface IRouter{
         url:string
         param?:{[key:string]:any},
         default?:{[key:string]:any},
         allowMethod?:'get' | 'post' | 'put' | 'delete' | 'option' | '*'
     }
+
+    declare interface IReadfileResult{
+        path:string,
+        isFile?:boolean,
+        content:{[key:string]:string},
+        children?:IReadfileResult[]
+    }
+
+    declare type ReadfileResult = IReadfileResult[];
 }
