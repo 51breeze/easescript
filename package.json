@@ -1,6 +1,6 @@
 {
   "name": "easescript",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "EaseScript Is Compiler For Web Development",
   "main": "lib/index.js",
   "scripts": {
