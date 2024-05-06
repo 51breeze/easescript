@@ -66,4 +66,25 @@ public class Index{
 
     }
 
+    predicateType(arg){
+        const name:any = 123
+        if( arg is Number){
+           return arg.toFixed(2)
+        }
+        return name is String ? name.slice(0) : null
+    }
+
+    predicateTypeError(arg){
+        const name:any = 123
+        if( arg is Number || arg is String){
+           return arg.toFixed(2)
+        }
+
+        if( arg is Number && arg is String){
+           return arg.toFixed(2)
+        }
+
+        return name is String ? name.slice(0) : null
+    }
+
 }
