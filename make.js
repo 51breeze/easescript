@@ -23,7 +23,7 @@ content.push(`const create=function(compilation,node,scope,parentNode,parentStac
             if( stackClass ){
                 return new stackClass(compilation,node,scope,parentNode,parentStack);
             }else{
-                throw new Error(\`Unrecognized token '\${node.type}'\`);
+                compilation.error(node, 1189, node.type);
             }
     }
 };`);

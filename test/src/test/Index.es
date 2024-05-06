@@ -87,4 +87,12 @@ public class Index{
         return name is String ? name.slice(0) : null
     }
 
+    operator(){
+        const obj = {};
+        obj.test ??= null;
+        obj.test?.name;
+        const name = obj ?? 12
+
+    }
+
 }
