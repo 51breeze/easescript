@@ -58,7 +58,7 @@ describe('test keyof type by test/Index.es > ', function() {
         [error2, result] = TestUtils.createError(errors,`Refers object the 'toFixed' property is ambiguous. should using type assertions to constraint`, 1188, 1);
         expect(error2).toEqual(result);
 
-        [error2, result] = TestUtils.createError(errors,`Refers object contains null type should using optional chain operator the '?.'`, 1190, 1);
+        [error2, result] = TestUtils.createError(errors,`Refers object may be null value should using optional chain operator or judgment object is not null`, 1190, 1);
         expect(error2).toEqual(result);
 
 
