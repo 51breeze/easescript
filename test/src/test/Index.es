@@ -90,8 +90,17 @@ public class Index{
     operator(){
         const obj = {};
         obj.test ??= null;
-        obj.test?.name;
-        const name = obj ?? 12
+        // obj.test?.name;
+         const name = obj ?? 12
+
+        // obj.test?.()
+        // let x = 0;
+
+        // obj.test?.[x++]
+
+        obj?.test.name
+
+        //  isset(obj) ? isset(obj.test) ? obj.test.name ： null : null
 
     }
 
