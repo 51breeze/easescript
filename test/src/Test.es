@@ -256,6 +256,8 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
             name = '666';
         })
 
+        var bbs56 = undefined;
+
 
         it(`'var bsp = ()=>{}' should is '()=>this' `, ()=>{
             var bsp = ()=>{

@@ -1831,6 +1831,7 @@ declare interface VNode{
 declare const NaN:Number;
 declare const Infinity:Number;
 declare const console:Console;
+declare const undefined:undefined;
 
 declare type int = Int;
 declare type uint = Uint;
@@ -1846,6 +1847,7 @@ declare type class  = Class;
 declare type any    = any;
 declare type nullable = nullable;
 declare type void = void;
+declare type undefined = undefined;
 declare type never = never;
 declare type Record<T=any> = {[key:string]:T}
 

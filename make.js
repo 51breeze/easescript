@@ -42,4 +42,3 @@ content.push(`for(var name in tokens){
 content.push(`Stack.create=create;`);
 content.push(`module.exports={'tokens':tokens,'create':create};`)
 fs.writeFileSync(  path.join(__dirname,'./lib/tokens.js'), content.join('\r\n') )
-
