@@ -55,10 +55,10 @@ describe('test keyof type by test/Index.es > ', function() {
         let [error2, result] = TestUtils.createError(errors,`The 'logical and' type assertions refers to the same expressions and may not satisfy conditions. are you to fix it?`, 1187, 1);
         expect(error2).toEqual(result);
 
-        [error2, result] = TestUtils.createError(errors,`Refers object the 'toFixed' property is ambiguous. should using type assertions to constraint`, 1188, 1);
+        [error2, result] = TestUtils.createError(errors,`Refers object have ambiguous. use type-assertion for this object on before refers it`, 1188, 1);
         expect(error2).toEqual(result);
 
-        [error2, result] = TestUtils.createError(errors,`Refers object may be null should check the object is not null on before refers it or using optional-chain operator(?.) to gets the value of the 'push' property`, 1190, 1);
+        [error2, result] = TestUtils.createError(errors,`Refers object may be null should check this object is not null on before refers it or use optional-chain operator(?.) that gets the value of this 'push' property`, 1190, 1);
         expect(error2).toEqual(result);
 
 
