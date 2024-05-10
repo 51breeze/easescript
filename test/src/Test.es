@@ -138,6 +138,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         this.target;
         Number(1);
         this.computed = true;
+
         new UIndex({})
         throw new Error('');
 

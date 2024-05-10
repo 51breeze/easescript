@@ -129,6 +129,37 @@ describe('test Generics', function() {
         expect('uint[][]').toEqual(expression.type().toString())
     });
 
+    it('testRecord', function(){
+        const start = module.getMember('testRecord');
+        let body = start.body.body;
+        let expression = body[1].expression.left
+        expect('TypeObjectPropertyDefinition').toEqual(expression.description().toString())
+        expect('any').toEqual(expression.description().type().toString(expression.getContext()))
+
+        expression = body[3].expression.left
+        expect('TypeObjectPropertyDefinition').toEqual(expression.description().toString())
+        expect('number').toEqual(expression.description().type().toString(expression.getContext()))
+
+        expression = body[4].expression.left
+        expect('TypeObjectPropertyDefinition').toEqual(expression.description().toString())
+        expect('number').toEqual(expression.description().type().toString(expression.getContext()))
+
+        expression = body[5].declarations[0];
+        expect('number').toEqual(expression.type().toString())
+
+        expression = body[7].expression.left
+        expect(null).toBe(expression.description() ? true : null)
+
+        expression = body[8].expression.left
+        expect('TypeObjectPropertyDefinition').toBe(expression.description().toString())
+        expect('string').toEqual(expression.description().type().toString(expression.getContext()))
+
+        expression = body[9].declarations[0];
+        expect('string').toEqual(expression.type().toString())
+
+
+    });
+
     it('should compiler error', function() {
         let [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type 'uint'`, 1002);
         expect(error).toEqual(result);
@@ -152,6 +183,13 @@ describe('test Generics', function() {
         expect(error).toEqual(result);
 
         [error, result] = TestUtils.createError(errors,`Argument of type '{}' is not assignable to parameter of type 'uint | string | boolean'`, 1002);
+        expect(error).toEqual(result);
+
+        //testRecord
+        [error, result] = TestUtils.createError(errors,`'b2.phone' does not exist.`, 1060);
+        expect(error).toEqual(result);
+
+        [error, result] = TestUtils.createError(errors,`Type 'string' is not assignable to assignment of type 'number'`, 1009);
         expect(error).toEqual(result);
 
     });

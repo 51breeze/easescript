@@ -69,4 +69,20 @@ class Generics{
         String('')
     }
 
+    testRecord(){
+        const bo:Record = {}
+        bo.name = 123
+
+        const b1:Record<number> = {}
+        b1.phone = 123;
+        b1.name = 'zh';
+        const v2 = b1.phone;
+
+        const b2:Record<string, number> = {}
+        b2.phone = 123;
+        b2[9899] = 'zh';
+        const v3 = b2[9899];
+
+    }
+
 }

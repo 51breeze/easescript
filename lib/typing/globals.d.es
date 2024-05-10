@@ -1849,7 +1849,7 @@ declare type nullable = nullable;
 declare type void = void;
 declare type undefined = undefined;
 declare type never = never;
-declare type Record<T=any> = {[key:string]:T}
+declare type Record<T=any, K=string> = {[key:K]:T}
 
 @Runtime(client);
 declare function setTimeout(callback: (...args: any[]) => void, ms: number, ...args: any[]):int;

@@ -3,6 +3,7 @@ const path = require('path')
 const compiler = require("./compiler");
 const root = path.join(__dirname,'./specs');
 const Glob = require('../lib/core/Glob')
+const TestUtils = require("./TestUtils");
 const specs = fs.readdirSync( root );
 specs.forEach(file=>require(path.join(root,file)));
 
@@ -30,7 +31,13 @@ describe('compile file', function() {
 
     it('should compile success and build', async function() {
         if(!compilation)return;
-        expect('Expected 0 errors').toContain( compilation.errors.filter(item=>item.kind===0||item.kind===1).length );
+
+        const errors = compilation.errors;
+        
+        let [error, result] = TestUtils.createError(errors,`'this[ns]' is not callable`, 1006);
+        expect(error).toEqual(result);
+
+        expect('Expected 0 errors').toContain(errors.filter(item=>item.kind===0||item.kind===1).length );
         const jsxElement = compilation.getReference('jsxElement',  compilation.getModuleById('Test') );
         var stack = jsxElement.body.body[1].declarations[0].init
         expect('JSXElement').toEqual( stack.node.type );
