@@ -55,7 +55,7 @@ function createError(errors, msg='', code=0, kind=0, line=0){
     }
 
     if( error ){
-        return [msg, error.message]
+        return [msg, error.message, true]
     }
 
     return [msg.trim(),'(Not found error) : '+msg];
