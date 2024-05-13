@@ -1771,9 +1771,9 @@ declare Class<T=any> extends Object {
    static const forName:string
 }
 
-declare Interface {}
+declare interface Interface {}
 
-declare Console{
+declare interface ConsoleInterface{
     const memory: any;
     assert(condition?: boolean, ...data: any[]): void;
     clear(): void;
@@ -1830,7 +1830,7 @@ declare interface VNode{
 
 declare const NaN:Number;
 declare const Infinity:Number;
-declare const console:Console;
+declare const console:ConsoleInterface;
 declare const undefined:undefined;
 
 declare type int = Int;

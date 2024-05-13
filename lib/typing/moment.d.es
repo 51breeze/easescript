@@ -399,52 +399,6 @@ package moment{
         strict?: boolean;
     }
 
-    /**
-    * @param strict Strict parsing requires that the format and input match exactly, including delimiters.
-    * Strict parsing is frequently the best parsing option. For more information about choosing strict vs
-    * forgiving parsing, see the [parsing guide](https://momentjs.com/guides/#/parsing/).
-    */
-    declare function utc(inp?: MomentInput, format?: MomentFormatSpecification, language?: string, strict?: boolean): Moment;
-
-    declare function unix(timestamp: number): Moment;
-
-    declare function invalid(flags?: MomentParsingFlagsOpt): Moment;
-    declare function isMoment(m: any): boolean;
-    declare function isDate(m: any): boolean;
-    declare function isDuration(d: any): boolean;
-
-    declare function locale(language?: string, definition?: LocaleSpecification | null): string;
-
-    declare function localeData(key?: string | string[]): Locale;
-
-    declare function duration(inp?: DurationInputArg1, unit?: DurationInputArg2): Duration;
-
-    // NOTE(constructor): Same as moment constructor
-    declare function parseZone(inp?: MomentInput, format?: MomentFormatSpecification, language?: string, strict?: boolean): Moment;
-
-    declare function months(format: string, index?: number): string | string[];
-    declare function monthsShort(format?: string | number, index?: number): string | string[];
-    declare function weekdays(localeSorted?: boolean | number | string, format?: string, index?: number): string | string[];
-    declare function weekdaysShort(localeSorted?: boolean | number | string, format?: string, index?: number): string | string[];
-    declare function weekdaysMin(localeSorted?: boolean | number | string, format?: string, index?: number): string | string[];
-
-    declare function min(...moments: (Moment | Moment[])[]): Moment;
-    declare function max(...moments:(Moment | Moment[])[]): Moment;
-
-    /**
-    * Returns unix time in milliseconds. Overwrite for profit.
-    */
-    declare function now(): number;
-
-    declare function defineLocale(language: string, localeSpec: LocaleSpecification | null): Locale;
-    declare function updateLocale(language: string, localeSpec: LocaleSpecification | null): Locale;
-    declare function locales(): string[];
-    declare function normalizeUnits(unit: moment.unit.All): string;
-    declare function relativeTimeThreshold(threshold: string, limit?: number): number | boolean;
-    declare function relativeTimeRounding(fn?: (num: number) => number): boolean | ((num: number) => number);
-    declare function calendarFormat(m: Moment, now: Moment): string;
-    declare function parseTwoDigitYear(input: string): number;
-
     declare interface Moment {
         format(format?: string): string;
 
@@ -546,4 +500,54 @@ import moment from 'moment';
  * Strict parsing is frequently the best parsing option. For more information about choosing strict vs
  * forgiving parsing, see the [parsing guide](https://momentjs.com/guides/#/parsing/).
  */
- declare function moment(inp?: moment.MomentInput, format?: moment.MomentFormatSpecification, language?: string, strict?: boolean): moment.Moment;
+declare interface moment{
+
+    (inp?: moment.MomentInput, format?: moment.MomentFormatSpecification, language?: string, strict?: boolean): moment.Moment
+  
+    /**
+    * @param strict Strict parsing requires that the format and input match exactly, including delimiters.
+    * Strict parsing is frequently the best parsing option. For more information about choosing strict vs
+    * forgiving parsing, see the [parsing guide](https://momentjs.com/guides/#/parsing/).
+    */
+    utc(inp?: moment.MomentInput, format?: moment.MomentFormatSpecification, language?: string, strict?: boolean): moment.Moment;
+
+    unix(timestamp: number): moment.Moment;
+
+    invalid(flags?: moment.MomentParsingFlagsOpt): moment.Moment;
+    isMoment(m: any): boolean;
+    isDate(m: any): boolean;
+    isDuration(d: any): boolean;
+
+    locale(language?: string, definition?: moment.LocaleSpecification | null): string;
+
+    localeData(key?: string | string[]): moment.Locale;
+
+    duration(inp?:moment.DurationInputArg1, unit?: moment.DurationInputArg2): moment.Duration;
+
+    // NOTE(constructor): Same as moment constructor
+    parseZone(inp?: moment.MomentInput, format?: moment.MomentFormatSpecification, language?: string, strict?: boolean): moment.Moment;
+
+    months(format: string, index?: number): string | string[];
+    monthsShort(format?: string | number, index?: number): string | string[];
+    weekdays(localeSorted?: boolean | number | string, format?: string, index?: number): string | string[];
+    weekdaysShort(localeSorted?: boolean | number | string, format?: string, index?: number): string | string[];
+    weekdaysMin(localeSorted?: boolean | number | string, format?: string, index?: number): string | string[];
+
+    min(...moments: (moment.Moment | moment.Moment[])[]): moment.Moment;
+    max(...moments:(moment.Moment | moment.Moment[])[]): moment.Moment;
+
+    /**
+    * Returns unix time in milliseconds. Overwrite for profit.
+    */
+    now(): number;
+
+    defineLocale(language: string, localeSpec: moment.LocaleSpecification | null): moment.Locale;
+    updateLocale(language: string, localeSpec: moment.LocaleSpecification | null): moment.Locale;
+    locales(): string[];
+    normalizeUnits(unit: moment.unit.All): string;
+    relativeTimeThreshold(threshold: string, limit?: number): number | boolean;
+    relativeTimeRounding(fn?: (num: number) => number): boolean | ((num: number) => number);
+    calendarFormat(m: moment.Moment, now: moment.Moment): string;
+    parseTwoDigitYear(input: string): number;
+
+ }
