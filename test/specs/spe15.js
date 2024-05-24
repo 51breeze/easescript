@@ -160,6 +160,15 @@ describe('test Generics', function() {
 
     });
 
+    it('testArrayMap', function(){
+        const start = module.getMember('testArrayMap');
+        let body = start.body.body;
+        let expression = body[0].argument;
+        expect('string[]').toEqual(expression.type().toString())
+        expression = expression.arguments[0].params[0];
+        expect('{key:string,children:any[]}').toEqual(expression.type().toString(expression.getContext()).replace(/[\r\n\s]+/g,''))
+    });
+
     it('should compiler error', function() {
         let [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type 'uint'`, 1002);
         expect(error).toEqual(result);

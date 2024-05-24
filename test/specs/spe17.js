@@ -47,6 +47,14 @@ describe('test components Child', function() {
 
     });
 
+    it('testComputeLiteralObject', function(){
+        const start = module.getMember('testComputeLiteralObject');
+        let body = start.body.body;
+        let expression = body[1].declarations[0]
+        expect('(boolean | uint)[]').toEqual(expression.type().toString())
+
+    });
+
     it('compiler success', function(){
      
         let [error, result, matched] = TestUtils.createError(errors,`Type '{value: uint}' does not satisfy the constraint 'test.Ref<string>'`, 1003);

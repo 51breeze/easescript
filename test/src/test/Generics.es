@@ -85,4 +85,14 @@ class Generics{
 
     }
 
+    testArrayMap(layouts:{key:string,children:any[]}[]){
+        return layouts.map( (item)=>{
+            return item.key
+        })
+    }
+
+    testArrayFilter(){
+        [].filter( Boolean )
+    }
+
 }

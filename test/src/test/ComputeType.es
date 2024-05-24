@@ -32,6 +32,24 @@ class ComputeType{
         if(!obj)return null;
         return obj['value']
     }
+
+    testComputeLiteralObject(){
+        const map = {
+            test:(name)=>{
+                return true
+            },
+            age(){
+                return 30
+            }
+        };
+
+        const result = [
+            {key:'test'},
+            {key:'age'},
+        ].map((item)=>{
+            return map[item.key]('ssss',111);
+        })
+    }
 }
 
 
