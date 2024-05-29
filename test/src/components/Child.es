@@ -11,6 +11,16 @@ package components{
                         <div d:for="item in scope">{item}</div>
                     </slot:default>
                 </List>
+                <List>
+                    <slot:default scope="{items, name='sss'}">
+                        <div d:for="item in items">{item}</div>
+                    </slot:default>
+                </List>
+                <List>
+                    <slot:default props="props">
+                        <div d:for="item in props.items">{item}</div>
+                    </slot:default>
+                </List>
             </div>
         }
         
