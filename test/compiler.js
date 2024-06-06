@@ -7,6 +7,7 @@ const _compiler = new Compiler(Object.assign({
     throwParseError:true,
     lang:'en-US',
     diagnose:true,
+    enableComments:true,
     output:path.join(__dirname,"./build"),
     workspace:path.join(__dirname,"./src"),
     parser:{

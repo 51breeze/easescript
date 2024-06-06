@@ -1,5 +1,6 @@
 ///<scope name='local' />
 ///<reference file='file'/>
+///<reference file='./assert.d.es'/>
 declare interface Matchers {
        
     message(): any;

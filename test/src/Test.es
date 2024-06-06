@@ -19,6 +19,7 @@ import components.Child;
 @Embed(Social='../social.svg');
 
 import  config, {child} from './config.es';
+import 'node.es';
 
 @Embed(logo = '../logo.png')
 @Embed(local = '../local.svg')

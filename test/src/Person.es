@@ -4,7 +4,7 @@ import com.TestInterface;
 import Gen;
 
 
-public class Person<T> extends Object implements TestInterface
+public class Person<T> extends Object implements com.TestInterface
 {
 
     public var addressName:string = `the Person properyt "addressName"`;
