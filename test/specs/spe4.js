@@ -59,7 +59,7 @@ describe('test promise', function() {
         const start = module.getMember('fetchApi');
         let body = start.body.body;
         let expression = body[0].argument.arguments[0]
-        expect('(function) (resolve: (value: [string,number])=>void, reject: (reason?: any)=>void)=>void').toBe(expression.definition().expre);
+        expect('function (resolve: (value: [string,number])=>void, reject: (reason?: any)=>void)=>void').toBe(expression.definition().expre);
 
     });
 
