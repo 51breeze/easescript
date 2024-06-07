@@ -973,7 +973,7 @@ declare module 'assert' {
                 strictEqual: typeof strictEqual,
                 deepStrictEqual: typeof deepStrictEqual,
                 ifError: typeof ifError,
-                strict: any
+                strict: typeof strict
             };
 
     }
