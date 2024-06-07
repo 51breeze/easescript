@@ -67,17 +67,13 @@ class Creator {
         return new Promise( async(resolved,reject)=>{
             await ready();
             const compiler = this.compiler;
-            const compilation = new Compilation(compiler);
+            const compilation = file ? await compiler.createCompilation(compiler.getFileAbsolute(file)) : new Compilation(compiler);
             try{
-                if( file ){
-                    file = compiler.getFileAbsolute(file)
-                }else{
+                compilation.pluginScopes.scope = 'local';
+                await compilation.parserAsync(source);
+                if(!file){
                     compilation.file = 'source.es'; 
                 }
-                compilation.pluginScopes.scope = 'local';
-                compilation.file = file;
-                await compilation.parserAsync(source);
-               
                 if(compilation.stack){
                     resolved(compilation);
                 }else{

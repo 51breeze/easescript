@@ -9,6 +9,7 @@ declare module 'process' {
     namespace process{
 
         function exit():void;
+        function exit(t:number):boolean;
     }
 
 }

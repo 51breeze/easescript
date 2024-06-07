@@ -982,4 +982,13 @@ declare module 'assert' {
     export * as Config from './src/config.es'
 
 }
+
     
+declare module '*.vue' {
+
+    interface VNode{
+
+    }
+
+    export default VNode;
+}
