@@ -943,6 +943,7 @@ declare const location:Location;
 
 /** An event which takes place in the DOM. */
 declare class Event extends Object{
+
     /**
      * Returns true or false depending on how event was initialized. True if event goes through its target's ancestors in reverse tree order, and false otherwise.
      */
@@ -1232,23 +1233,6 @@ declare interface RequestOptions{
 
 
 declare type AsyncRequestOptions<O,S,F> = O & {success:(result:S)=>void} | {fail:(result:F)=>void}
-
-
-declare module web.Application {
-
-
-    declare class Application{
-
-    }
-
-    declare const name:string;
-
-    export default name;
-
-}
-
-
-
 
 
 declare class Proxy{

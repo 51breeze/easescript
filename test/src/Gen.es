@@ -4,7 +4,6 @@ import Gen123;
 
 class Gen<T> implements com.GenInterfac<T,number>{
 
-
     private _host:T
     constructor(host:T){
         this._host = host;
