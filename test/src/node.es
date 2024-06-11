@@ -1,4 +1,4 @@
-import assert, {AssertionError, exit, child, match, strict} from 'assert';
+import assert, {AssertionError, exit, child, match, strict, AssertionErrors} from 'assert';
 assert(1);
 new AssertionError();
 import config from 'nodejs/config.es';
@@ -12,3 +12,5 @@ exit(1)
 import * as q1 from '../process';
 
 const res:boolean = q1.exit(0)
+
+const bs:AssertionErrors = null

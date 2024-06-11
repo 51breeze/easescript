@@ -18,6 +18,12 @@ declare module 'assert' {
     import {exit} from 'process';
     export {exit}
 
+    export interface AssertionErrors{
+
+    }
+
+    export type T9 = string;
+
     namespace assert {
 
         /**
