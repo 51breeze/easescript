@@ -24,7 +24,7 @@ declare module 'assert' {
 
     export type T9 = string;
 
-    namespace assert {
+    export namespace assert {
 
         /**
         * Indicates the failure of an assertion. All errors thrown by the `assert` module

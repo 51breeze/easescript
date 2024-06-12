@@ -40,7 +40,7 @@ describe('test components Child', function() {
          expect('assert.d.es').toEqual( path.basename(def.file) )
 
          def = expression.specifiers[1].toDefinition();
-         expect('(import refers) class AssertionError').toEqual(def.expre)
+         expect('(import refers) class assert.AssertionError').toEqual(def.expre)
          expect('assert.d.es').toEqual( path.basename(def.file) )
 
          def = expression.specifiers[2].toDefinition();
@@ -62,7 +62,7 @@ describe('test components Child', function() {
 
          expression = start.childrenStack[2].expression
          expect(true).toBeTrue( expression.description().isModule )
-         expect('AssertionError').toEqual( expression.description().id )
+         expect('assert.AssertionError').toEqual( expression.type().toString() )
 
          def = start.childrenStack[3].specifiers[0].toDefinition();
          expect('(import refers) config: {}').toEqual( def.expre )
