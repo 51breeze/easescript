@@ -18,7 +18,7 @@ declare module 'assert' {
     import {exit} from 'process';
     export {exit}
 
-    export interface AssertionErrors{
+    export interface AssertionErrors extends assert.AssertionError{
 
     }
 
