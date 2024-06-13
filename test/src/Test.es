@@ -56,7 +56,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         var buname = {
             a:1, 
             test:a, 
-            person:Person
+            person:Person,
         }
 
         //  var bsss66= {sss:11};
@@ -93,6 +93,14 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
     }
 
     static getObject(){
+        type T = {
+            new<T1>(p:T1):object,
+            (a:number):string
+        }
+        const bs:T = null;
+        bs(1);
+        const ss:object = new bs(1);
+
         return new Test<string,number>('1','2')
     }
 
