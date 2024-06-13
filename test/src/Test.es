@@ -567,7 +567,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
         var v15 = v14[0]
 
-       var v16:string = this[1]
+       var v16:number = this[1]
 
        var inter:Tname = {
 
