@@ -1932,12 +1932,14 @@ import md5 from 'blueimp-md5';
 declare function md5(string:string):string;
 
 package annotation{
+
+    declare type RouteMethod = 'get' | 'post' | 'put' | 'delete' | 'option' | '*';
     
     declare interface IRouter{
         url:string
         param?:{[key:string]:any},
         default?:{[key:string]:any},
-        allowMethod?:'get' | 'post' | 'put' | 'delete' | 'option' | '*'
+        allowMethod?:RouteMethod | RouteMethod[]
     }
 
     declare interface IReadfileResult{
