@@ -95,4 +95,14 @@ class Generics{
         [].filter( Boolean )
     }
 
+    testPredicate(name){
+        if(this.isTest(name)){
+            console.log( name.slice(0) )
+        }
+    }
+
+    isTest(obj):obj is string{
+        return true;
+    }
+
 }
