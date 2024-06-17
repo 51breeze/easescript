@@ -96,12 +96,46 @@ class Generics{
     }
 
     testPredicate(name){
+        const ds = this.isTest(name);
         if(this.isTest(name)){
-            console.log( name.slice(0) )
+            const bs = name;
+            console.log( bs.slice(0), ds )
         }
+
+        const age = {old:30};
+        if(this.isTest2(age)){
+            const bs = age;
+            console.log( bs.old )
+        }
+
+        if(this.isTest3(age, 'old')){
+            const bs = age;
+            console.log( bs.toFixed() )
+        }
+
+        const v = this.isTest3(age, 'old');
+        if(v){
+            const bs:uint = age;
+        }
+
+        const vs = this.isTest3(age, 'old');
+        if(ds){
+            const bs:uint = age.old;
+        }
+        
+        const v2:string | typeof age = vs ? age.toFixed() : age;
+
     }
 
     isTest(obj):obj is string{
+        return true;
+    }
+
+     isTest2<T>(obj:T):obj is T{
+        return true;
+    }
+
+    isTest3<T, K extends keyof T>(obj:T, prop:K):obj is T[K]{
         return true;
     }
 

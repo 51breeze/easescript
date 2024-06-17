@@ -169,6 +169,24 @@ describe('test Generics', function() {
         expect('{key:string,children:any[]}').toEqual(expression.type().toString(expression.getContext()).replace(/[\r\n\s]+/g,''))
     });
 
+    it('testPredicate', function(){
+        const start = module.getMember('testPredicate');
+        let body = start.body.body;
+        let expression = body[0].declarations[0]
+        expect('boolean').toEqual(expression.type().toString())
+
+        expression = body[1].consequent.body[0].declarations[0];
+        expect('string').toEqual(expression.type().toString())
+
+        expression =  body[4].consequent.body[0].declarations[0];
+        expect('uint').toEqual(expression.type().toString())
+        expect('(local const) age:uint').toEqual(expression.init.definition().expre)
+
+        expression = body[6].consequent.body[0].declarations[0];
+        expect('uint').toEqual(expression.type().toString())
+        expect('(local const) age:uint').toEqual(expression.init.definition().expre)
+    });
+
     it('should compiler error', function() {
         let [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type 'uint'`, 1002);
         expect(error).toEqual(result);
