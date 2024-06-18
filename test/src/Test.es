@@ -985,7 +985,6 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
         /\d+/.exec("123")
 
-   
 
        var hhh=  new Index();
 
