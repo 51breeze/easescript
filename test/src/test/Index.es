@@ -18,7 +18,7 @@ public class Index{
         
         this.getListItems(obj, ['start','getList','getListItems'] )
 
-        type FN = typeof this.getListItems;
+        type FN = typeof this.getListItems
 
         var b:FN = this.getList(obj, 'getListItems' );
 

@@ -5,12 +5,14 @@ describe('test components Child', function() {
     const creator = new compiler.Creator();
     let compilation = null;
     let compilation2 = null;
+    let compilation3 = null;
     let errors = [];
     let module = null;
     let errorNum = 0;
     beforeAll(async function() {
         compilation = await creator.startByFile('./node.es');
         compilation2 = await creator.startByFile('./../assert.d.es');
+        compilation3 = await creator.startByFile('./../process.d.es');
         errors = compilation.errors;
         errorNum = errors.length;
     });
@@ -23,6 +25,12 @@ describe('test components Child', function() {
         });
 
         compilation2.errors.forEach( item=>{
+            if( item.kind == 0 ){
+                fail( item.toString() )
+            }
+        });
+
+        compilation3.errors.forEach( item=>{
             if( item.kind == 0 ){
                 fail( item.toString() )
             }

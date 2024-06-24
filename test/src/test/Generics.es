@@ -123,7 +123,7 @@ class Generics{
             const bs:uint = age.old;
         }
         
-        const v2:string | typeof age = vs ? age.toFixed() : age;
+        const v2:(string | typeof age) = vs ? age.toFixed() : age;
 
     }
 

@@ -6,6 +6,7 @@
   "scripts": {
     "version": "node ./bin/es.js -V",
     "test": "jasmine ./test/index.js",
+    "node": "jasmine ./test/node-test.js",
     "build": "node scripts/build.js"
   },
   "repository": {

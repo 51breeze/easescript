@@ -12,4 +12,47 @@ declare module 'process' {
         export function exit(t:number):boolean;
     }
 
+    export = process
+
+}
+
+declare module "stream" {
+
+    class internal{
+        pipe():any;
+    }
+    
+    namespace internal {
+        class Stream extends internal {
+            constructor();
+        }
+        interface StreamOptions{
+          
+        }
+    }
+
+    export = internal
+
+}
+
+declare module "node:stream" {
+    export * from "stream";
+}
+
+declare module 'crypto'{
+
+    import * as stream from "stream";
+
+    interface HashOptions extends stream.StreamOptions {
+        /**
+         * For XOF hash functions such as `shake256`, the
+         * outputLength option can be used to specify the desired output length in bytes.
+         */
+        outputLength?: number | undefined;
+    }
+
+    const fips: boolean;
+
+    export *
+
 }
