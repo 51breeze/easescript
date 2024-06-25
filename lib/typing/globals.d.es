@@ -1631,7 +1631,7 @@ declare class Set<T=any>{
    const size: number;
 }
 
-declare interface WeakMap<K extends object, V=any> {
+declare class WeakMap<K extends object, V=any> {
    constructor<K extends object, V = any>(entries?: [K, V][] | null): WeakMap<K, V>;
    delete(key: K): boolean;
    get(key: K): V | null;
@@ -1639,7 +1639,7 @@ declare interface WeakMap<K extends object, V=any> {
    set(key: K, value: V): this;
 }
 
-declare interface WeakSet<T extends object> {
+declare class WeakSet<T extends object> {
    constructor<K extends object>(values?: T[] | null): WeakSet<T>;
    add(value: T): this;
    delete(value: T): boolean;

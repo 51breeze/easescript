@@ -31,7 +31,7 @@ declare module "stream" {
         }
     }
 
-    export = internal
+    export = internal;
 
 }
 
