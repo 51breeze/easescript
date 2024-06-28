@@ -1586,3 +1586,12 @@ declare module "http" {
 declare module "node:http" {
     export * from "http";
 }
+
+package http{
+
+    export * from "node:stream";
+
+
+    import {Agent} from 'http'
+    declare class Agent{}
+}
