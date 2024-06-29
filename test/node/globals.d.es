@@ -32,11 +32,334 @@ package {
         * @param sym Symbol to find the key for.
         */
         keyFor(sym: symbol): string | undefined;
+
+        /**
+        * A method that returns the default async iterator for an object. Called by the semantics of
+        * the for-await-of statement.
+        */
+        readonly asyncIterator: unique symbol;
+
+        /**
+        * A method that determines if a constructor object recognizes an object as one of the
+        * constructor’s instances. Called by the semantics of the instanceof operator.
+        */
+        readonly hasInstance: unique symbol;
+
+        /**
+        * A Boolean value that if true indicates that an object should flatten to its array elements
+        * by Array.prototype.concat.
+        */
+        readonly isConcatSpreadable: unique symbol;
+
+        /**
+        * A regular expression method that matches the regular expression against a string. Called
+        * by the String.prototype.match method.
+        */
+        readonly match: unique symbol;
+
+        /**
+        * A regular expression method that replaces matched substrings of a string. Called by the
+        * String.prototype.replace method.
+        */
+        readonly replace: unique symbol;
+
+        /**
+        * A regular expression method that returns the index within a string that matches the
+        * regular expression. Called by the String.prototype.search method.
+        */
+        readonly search: unique symbol;
+
+        /**
+        * A function valued property that is the constructor function that is used to create
+        * derived objects.
+        */
+        readonly species: unique symbol;
+
+        /**
+        * A regular expression method that splits a string at the indices that match the regular
+        * expression. Called by the String.prototype.split method.
+        */
+        readonly split: unique symbol;
+
+        /**
+        * A method that converts an object to a corresponding primitive value.
+        * Called by the ToPrimitive abstract operation.
+        */
+        readonly toPrimitive: unique symbol;
+
+        /**
+        * A String value that is used in the creation of the default string description of an object.
+        * Called by the built-in method Object.prototype.toString.
+        */
+        readonly toStringTag: unique symbol;
+
+        /**
+        * An Object whose own property names are property names that are excluded from the 'with'
+        * environment bindings of the associated objects.
+        */
+        readonly unscopables: unique symbol;
+
+        readonly iterator: unique symbol;
     }
 
-    declare type symbol = SymbolConstructor;
+    declare interface Symbol {
+        /** Returns a string representation of an object. */
+        toString(): string;
 
+        /** Returns the primitive value of the specified object. */
+        valueOf(): symbol;
+
+        /**
+        * Converts a Symbol object to a symbol.
+        */
+        [Symbol.toPrimitive](hint: string): symbol;
+
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare type symbol = Symbol;
     declare var Symbol: SymbolConstructor;
+    
+    declare interface GeneratorFunction {
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class Array {
+        /**
+        * Returns an object whose properties have the value 'true'
+        * when they will be absent when used in a 'with' statement.
+        */
+        [Symbol.unscopables](): {
+            copyWithin: boolean;
+            entries: boolean;
+            fill: boolean;
+            find: boolean;
+            findIndex: boolean;
+            keys: boolean;
+            values: boolean;
+        };
+    }
+
+    declare class Date {
+        /**
+        * Converts a Date object to a string.
+        */
+        [Symbol.toPrimitive](hint: "default"): string;
+        /**
+        * Converts a Date object to a string.
+        */
+        [Symbol.toPrimitive](hint: "string"): string;
+        /**
+        * Converts a Date object to a number.
+        */
+        [Symbol.toPrimitive](hint: "number"): number;
+        /**
+        * Converts a Date object to a string or number.
+        *
+        * @param hint The strings "number", "string", or "default" to specify what primitive to return.
+        *
+        * @throws {TypeError} If 'hint' was given something other than "number", "string", or "default".
+        * @returns A number if 'hint' was "number", a string if 'hint' was "string" or "default".
+        */
+        [Symbol.toPrimitive](hint: string): string | number;
+    }
+
+    declare class Map{
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class WeakMap{
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class Set{
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class WeakSet{
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class JSON {
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class Function {
+        /**
+        * Determines whether the given value inherits from this function if this function was used
+        * as a constructor function.
+        *
+        * A constructor function can control which objects are recognized as its instances by
+        * 'instanceof' by overriding this method.
+        */
+        [Symbol.hasInstance](value: any): boolean;
+    }
+
+    declare interface Generator<T=any, TReturn = any> extends Iterator<T> {
+        // NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
+        next(...args: any[]): IteratorResult<T, TReturn>;
+        return(value: TReturn): IteratorResult<T, TReturn>;
+        throw(e: any): IteratorResult<T, TReturn>;
+        [Symbol.iterator](): Generator<T, TReturn>;
+    }
+
+    declare interface GeneratorFunction {
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class Math {
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class Promise {
+        readonly [Symbol.species]: Promise;
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class RegExp {
+        /**
+        * Matches a string with this regular expression, and returns an array containing the results of
+        * that search.
+        * @param string A string to search within.
+        */
+        [Symbol.match](string: string): RegExpMatchArray | null;
+
+        /**
+        * Replaces text in a string, using this regular expression.
+        * @param string A String object or string literal whose contents matching against
+        *               this regular expression will be replaced
+        * @param replaceValue A String object or string literal containing the text to replace for every
+        *                     successful match of this regular expression.
+        */
+        [Symbol.replace](string: string, replaceValue: string): string;
+
+        /**
+        * Replaces text in a string, using this regular expression.
+        * @param string A String object or string literal whose contents matching against
+        *               this regular expression will be replaced
+        * @param replacer A function that returns the replacement text.
+        */
+        [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string;
+
+        /**
+        * Finds the position beginning first substring match in a regular expression search
+        * using this regular expression.
+        *
+        * @param string The string to search within.
+        */
+        [Symbol.search](string: string): number;
+
+        /**
+        * Returns an array of substrings that were delimited by strings in the original input that
+        * match against this regular expression.
+        *
+        * If the regular expression contains capturing parentheses, then each time this
+        * regular expression matches, the results (including any undefined results) of the
+        * capturing parentheses are spliced.
+        *
+        * @param string string value to split
+        * @param limit if not undefined, the output array is truncated so that it contains no more
+        * than 'limit' elements.
+        */
+        [Symbol.split](string: string, limit?: number): string[];
+
+        readonly [Symbol.species]: RegExp;
+    }
+
+    declare class String {
+        /**
+        * Matches a string or an object that supports being matched against, and returns an array
+        * containing the results of that search, or null if no matches are found.
+        * @param matcher An object that supports being matched against.
+        */
+        match(matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null;
+
+        /**
+        * Replaces first match with string or all matches with RegExp.
+        * @param searchValue A string or RegExp search value.
+        * @param replaceValue A string containing the text to replace for match.
+        */
+        replace(searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string;
+
+        /**
+        * Replaces text in a string, using an object that supports replacement within a string.
+        * @param searchValue A object can search for and replace matches within a string.
+        * @param replacer A function that returns the replacement text.
+        */
+        replace(searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string;
+
+        /**
+        * Finds the first substring match in a regular expression search.
+        * @param searcher An object which supports searching within a string.
+        */
+        search(searcher: { [Symbol.search](string: string): number; }): number;
+
+        /**
+        * Split a string into substrings using the specified separator and return them as an array.
+        * @param splitter An object that can split a string.
+        * @param limit A value used to limit the number of elements returned in the array.
+        */
+        split(splitter: { [Symbol.split](string: string, limit?: number): string[]; }, limit?: number): string[];
+    }
+
+    declare class ArrayBuffer {
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class DataView {
+        readonly [Symbol.toStringTag]: string;
+    }
+
+    declare class Int8Array {
+        readonly [Symbol.toStringTag]: "Int8Array";
+    }
+
+    declare class Uint8Array {
+        readonly [Symbol.toStringTag]: "Uint8Array";
+    }
+
+    declare class Uint8ClampedArray {
+        readonly [Symbol.toStringTag]: "Uint8ClampedArray";
+    }
+
+    declare class Int16Array {
+        readonly [Symbol.toStringTag]: "Int16Array";
+    }
+
+    declare class Uint16Array {
+        readonly [Symbol.toStringTag]: "Uint16Array";
+    }
+
+    declare class Int32Array {
+        readonly [Symbol.toStringTag]: "Int32Array";
+    }
+
+    declare class Uint32Array {
+        readonly [Symbol.toStringTag]: "Uint32Array";
+    }
+
+    declare class Float32Array {
+        readonly [Symbol.toStringTag]: "Float32Array";
+    }
+
+    declare class Float64Array {
+        readonly [Symbol.toStringTag]: "Float64Array";
+    }
+
+    declare class Array{
+        readonly [Symbol.species]: Array;
+    }
+    declare class Map{
+        readonly [Symbol.species]: Map;
+    }
+    declare class Set{
+        readonly [Symbol.species]: Set;
+    }
+    declare class ArrayBuffer {
+        readonly [Symbol.species]: ArrayBuffer;
+    }
+
+
 
     // Declare "static" methods in Error
     declare interface ErrorConstructor {
@@ -51,15 +374,6 @@ package {
         prepareStackTrace?: ((err: Error, stackTraces: NodeJS.CallSite[]) => any) | undefined;
 
         stackTraceLimit: number;
-    }
-
-
-    declare interface SymbolConstructor {
-        /**
-        * A method that returns the default async iterator for an object. Called by the semantics of
-        * the for-await-of statement.
-        */
-        readonly asyncIterator: unique symbol;
     }
 
     declare interface PromiseLike<T> {
@@ -83,7 +397,6 @@ package {
     declare interface AsyncIterable<T> {
         [Symbol.asyncIterator](): AsyncIterator<T>;
     }
-
 
     declare interface AsyncIterableIterator<T> extends AsyncIterator<T> {
         [Symbol.asyncIterator](): AsyncIterableIterator<T>;
@@ -154,20 +467,20 @@ package {
         */
         at(index: number): T | undefined;
     }
-    interface String extends RelativeIndexable<string> {}
-    interface Array<T> extends RelativeIndexable<T> {}
-    interface ReadonlyArray<T> extends RelativeIndexable<T> {}
-    interface Int8Array extends RelativeIndexable<number> {}
-    interface Uint8Array extends RelativeIndexable<number> {}
-    interface Uint8ClampedArray extends RelativeIndexable<number> {}
-    interface Int16Array extends RelativeIndexable<number> {}
-    interface Uint16Array extends RelativeIndexable<number> {}
-    interface Int32Array extends RelativeIndexable<number> {}
-    interface Uint32Array extends RelativeIndexable<number> {}
-    interface Float32Array extends RelativeIndexable<number> {}
-    interface Float64Array extends RelativeIndexable<number> {}
-    interface BigInt64Array extends RelativeIndexable<number> {}
-    interface BigUint64Array extends RelativeIndexable<number> {}
+    declare class String extends RelativeIndexable<string> {}
+    declare class Array<T> extends RelativeIndexable<T> {}
+    declare class ReadonlyArray<T> extends RelativeIndexable<T> {}
+    declare class Int8Array extends RelativeIndexable<number> {}
+    declare class Uint8Array extends RelativeIndexable<number> {}
+    declare class Uint8ClampedArray extends RelativeIndexable<number> {}
+    declare class Int16Array extends RelativeIndexable<number> {}
+    declare class Uint16Array extends RelativeIndexable<number> {}
+    declare class Int32Array extends RelativeIndexable<number> {}
+    declare class Uint32Array extends RelativeIndexable<number> {}
+    declare class Float32Array extends RelativeIndexable<number> {}
+    declare class Float64Array extends RelativeIndexable<number> {}
+    declare class BigInt64Array extends RelativeIndexable<number> {}
+    declare class BigUint64Array extends RelativeIndexable<number> {}
     // #endregion ArrayLike.at() end
 
     declare interface IterableIterator<T> extends Iterator {
@@ -233,7 +546,7 @@ package {
     }
 
     
-    interface ReadonlySet<T> {
+    declare interface ReadonlySet<T> {
         /** Iterates over values in the set. */
         [Symbol.iterator](): IterableIterator<T>;
 
@@ -252,7 +565,6 @@ package {
         */
         values(): IterableIterator<T>;
     }
-
 
 }
 

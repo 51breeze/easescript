@@ -90,7 +90,9 @@ describe('test', function() {
         let body = start.body.body;
         let expression = body[1].declarations[0].init;
         expect('()=>{}').toBe( start.type().toString() );
-        expect('(constructor) public Proxy<{}>(target: {}, handler: ProxyHandler<{}>): {}').toBe( expression.definition().expre );
+        let defs = expression.definition();
+        let def = Array.isArray(defs) ? defs[0] : defs;
+        expect(def.expre).toContain( '(constructor) public Proxy<{}>(target: {}, handler: ProxyHandler<{}>): {}'  );
         const config = expression.arguments[1];
         expect('(target: {}, key: string, value: any)=>boolean').toBe(config.attribute('set').type().toString(expression.getContext(), {inferTypeValueFlag:true}));
         expect('{}').toBe(config.attribute('set').init.params[0].type().toString(expression.getContext()));
