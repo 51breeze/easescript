@@ -1589,9 +1589,6 @@ declare module "node:http" {
 
 package http{
 
-    export * from "node:stream";
+    export * from "node:http";
 
-
-    import {Agent} from 'http'
-    declare class Agent{}
 }

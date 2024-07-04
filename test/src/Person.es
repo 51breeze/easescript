@@ -17,6 +17,8 @@ public class Person<T> extends Object implements com.TestInterface
         super();
         this._name = name;
         var bsss:T9 = '';
+        const b = new assert.AssertionError()
+        process.exit()
     }
 
     get target(){

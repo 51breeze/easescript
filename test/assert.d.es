@@ -998,3 +998,7 @@ declare module '*.vue' {
 
     export default VNode;
 }
+
+package assert{
+    export {AssertionError} from 'assert';
+}

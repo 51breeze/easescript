@@ -56,3 +56,8 @@ declare module 'crypto'{
     export *
 
 }
+
+package process{
+    export *  from 'process';
+
+}
