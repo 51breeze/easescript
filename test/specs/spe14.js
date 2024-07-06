@@ -28,11 +28,11 @@ describe('test Callable', function() {
         let body = start.body.body;
         let expression = body[0].expression;
         expect('object').toEqual(expression.type().toString())
-        expect('<uint>(name: uint)=>object').toEqual( expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()))
+        expect('<uint>(name: uint)=>object').toEqual( expression.descriptor().type().toString(expression.getContext()))
 
         expression = body[1].expression;
         expect('object').toEqual(expression.type().toString())
-        expect('<string>(name: string)=>object').toEqual( expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()))
+        expect('<string>(name: string)=>object').toEqual( expression.descriptor().type().toString(expression.getContext()))
 
         expression = body[2].expression;
         expect('object').toEqual(expression.type().toString())
@@ -64,7 +64,7 @@ describe('test Callable', function() {
 
         expression = body[8].expression;
         expect('boolean').toEqual(expression.type().toString())
-        expect('(name: string, arg: number)=>boolean').toEqual( expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()))
+        expect('(name: string, arg: number)=>boolean').toEqual( expression.descriptor().type().toString(expression.getContext()))
 
     });
 

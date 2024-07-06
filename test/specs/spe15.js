@@ -39,7 +39,7 @@ describe('test Generics', function() {
         expect('(entries?: [uint,uint][] | null)=>Map<uint, uint>').toEqual( method.type().toString(expression.getContext()))
 
         expression = body[3].expression;
-        expect('(key: uint, value: uint)=>this').toEqual( expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()))
+        expect('(key: uint, value: uint)=>this').toEqual( expression.descriptor().type().toString(expression.getContext()))
 
         expression = body[5].declarations[0].init;
         expect('Map<number, string>').toEqual(expression.type().toString())
@@ -48,7 +48,7 @@ describe('test Generics', function() {
         expect('(entries?: [number,string][] | null)=>Map<number, string>').toEqual( method.type().toString(expression.getContext()))
 
         expression = body[6].expression;
-        expect('(key: number, value: string)=>this').toEqual( expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()))
+        expect('(key: number, value: string)=>this').toEqual( expression.descriptor().type().toString(expression.getContext()))
 
     });
 
@@ -59,7 +59,7 @@ describe('test Generics', function() {
         expect('any[]').toEqual(expression.type().toString(expression.getContext()))
 
         expression = body[1].expression;
-        expect('(...items: any[])=>number').toEqual( expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()))
+        expect('(...items: any[])=>number').toEqual( expression.descriptor().type().toString(expression.getContext()))
 
         expression = body[2].declarations[0].init;
         expect('uint[]').toEqual(expression.type().toString(expression.getContext()))
@@ -79,7 +79,7 @@ describe('test Generics', function() {
         expect('any[]').toEqual(expression.type().toString(expression.getContext()))
 
         expression = body[1].expression;
-        expect('(...items: any[])=>number').toEqual(expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()) )
+        expect('(...items: any[])=>number').toEqual(expression.descriptor().type().toString(expression.getContext()) )
 
         expression = body[2].declarations[0].init;
         expect('uint[]').toEqual(expression.type().toString(expression.getContext()))
@@ -88,7 +88,7 @@ describe('test Generics', function() {
         expect('(uint | string | boolean)[]').toEqual(expression.type().toString(expression.getContext()))
         
         expression = body[6].expression;
-        expect('(...items: (uint | string | boolean)[])=>number').toEqual(expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()) )
+        expect('(...items: (uint | string | boolean)[])=>number').toEqual(expression.descriptor().type().toString(expression.getContext()) )
 
         expression = body[8].declarations[0].init;
         expect('string[]').toEqual(expression.type().toString(expression.getContext()))
@@ -100,10 +100,10 @@ describe('test Generics', function() {
         let expression = body[0].declarations[0].init;
 
         expression = body[1].expression;
-        expect('(...items: uint[])=>number').toEqual(expression.getDeclareFunctionType(expression.description()).type().toString(expression.getContext()))
+        expect('(...items: uint[])=>number').toEqual(expression.descriptor().type().toString(expression.getContext()))
 
         expression = body[2].expression;
-        let fun = expression.getDeclareFunctionType(expression.description());
+        let fun = expression.descriptor();
         expect('<uint[], string>(target: Iterator<uint[]> | ArrayLike<uint[]>, callback?: (value: uint[], key: number)=>string)=>string[]').toEqual(
             fun.type().toString(expression.getContext())
         );

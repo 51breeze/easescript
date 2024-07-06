@@ -99,7 +99,7 @@ describe('test components Child', function() {
          expect('string').toEqual( def.type().attribute('site').type().toString())
 
          expression = start.childrenStack[5].expression
-         expect('<uint>(value: uint, message?: string | Error)=>uint').toEqual( expression.getDeclareFunctionType(expression.description()).toString(expression.getContext()))
+         expect('<uint>(value: uint, message?: string | Error)=>uint').toEqual( expression.descriptor().toString(expression.getContext()))
 
         
     });
