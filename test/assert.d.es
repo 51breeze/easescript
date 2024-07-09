@@ -1000,5 +1000,5 @@ declare module '*.vue' {
 }
 
 package assert{
-    export {AssertionError} from 'assert';
+    export * from 'assert';
 }

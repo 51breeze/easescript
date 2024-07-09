@@ -96,7 +96,8 @@ describe('test components Child', function() {
          def = start.childrenStack[4].specifiers[2].description()
          expect(true).toBeTrue( def.type().isLiteralObjectType )
 
-         expect('string').toEqual( def.type().attribute('site').type().toString())
+         const site = def.type().attribute('site');
+         expect('string').toEqual( site && site.type().toString())
 
          expression = start.childrenStack[5].expression
          expect('<uint>(value: uint, message?: string | Error)=>uint').toEqual( expression.descriptor().toString(expression.getContext()))
