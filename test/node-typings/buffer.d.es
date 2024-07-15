@@ -231,7 +231,7 @@ package global{
             * @param array The octets to store.
             * @deprecated since v10.0.0 - Use `Buffer.from(array)` instead.
             */
-        new(array: ReadonlyArray<any>): Buffer;
+        new(array: any[]): Buffer;
         /**
             * Copies the passed {buffer} data onto a new {Buffer} instance.
             *
@@ -265,8 +265,8 @@ package global{
             * Creates a new Buffer using the passed {data}
             * @param data data to create a new Buffer
             */
-        from(data: Uint8Array | ReadonlyArray<number>): Buffer;
-        from(data: WithImplicitCoercion<Uint8Array | ReadonlyArray<number> | string>): Buffer;
+        from(data: Uint8Array | number[]): Buffer;
+        from(data: WithImplicitCoercion<Uint8Array | number[] | string>): Buffer;
         /**
             * Creates a new Buffer containing the given JavaScript string {str}.
             * If provided, the {encoding} parameter identifies the character encoding.
@@ -394,7 +394,7 @@ package global{
             * @param list List of `Buffer` or {@link Uint8Array} instances to concatenate.
             * @param totalLength Total length of the `Buffer` instances in `list` when concatenated.
             */
-        concat(list: ReadonlyArray<Uint8Array>, totalLength?: number): Buffer;
+        concat(list: Uint8Array[], totalLength?: number): Buffer;
         /**
             * Compares `buf1` to `buf2`, typically for the purpose of sorting arrays of`Buffer` instances. This is equivalent to calling `buf1.compare(buf2)`.
             *
@@ -2258,9 +2258,10 @@ package global{
     declare function btoa(data: string): string;
 }
 
-declare module "node:buffer"{
+declare module "node:buffer" {
     export * from 'buffer';
 }
+
 package{
     export * as buffer from "node:buffer";
 }

@@ -10,6 +10,7 @@ const _compiler = new Compiler(Object.assign({
     lang:'en-US',
     diagnose:true,
     enableComments:true,
+    autoLoadDescribeFile:false,
     output:path.join(__dirname,"./build"),
     workspace:path.join(__dirname,"./src"),
     parser:{
@@ -24,15 +25,19 @@ async function ready(){
         initialize = true;
         await _compiler.initialize();
         await _compiler.loadTypes([
-            path.join(__dirname,"node/index.d.es")
+            path.join(__dirname,"node-typings/index.d.es")
         ],{scope:'local',inherits:[]});
     }
 }
 
 
 describe('compile file', function(){
+    let compilation = null;
     beforeAll(async function() {
         await ready()
+        compilation =await _compiler.createCompilation(_compiler.getFileAbsolute('TestNodeJs.es'));
+        compilation.pluginScopes.scope = 'local';
+        await compilation.parserAsync();
     });
 
     afterAll(()=>{
@@ -46,6 +51,7 @@ describe('compile file', function(){
     it('should compile success and build', async function() {
         const errors = _compiler.errors;
         expect('Expected 0 errors').toContain(errors.filter(item=>item.kind===0||item.kind===1).length );
-
     })
+
+
 });
