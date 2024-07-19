@@ -1012,7 +1012,6 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         return new Child()
     }
 
-
     //on enent
     on(name:string,callback:(...rest:(string|number)[])=>void){
         console.log(11)

@@ -1,6 +1,6 @@
 package test;
 
-class Generics{
+class Generics<TD extends string = string>{
 
     start(){
         const map = new Map()
