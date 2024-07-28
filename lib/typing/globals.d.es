@@ -1844,6 +1844,7 @@ declare type regexp  = RegExp;
 declare type object  = Object;
 declare type class  = Class;
 declare type any    = any;
+declare type unknown = unknown;
 declare type nullable = nullable;
 declare type void = void;
 declare type undefined = undefined;
