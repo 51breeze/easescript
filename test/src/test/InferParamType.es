@@ -22,10 +22,17 @@ public class InferParamType{
         this.call((item)=>{
 
         })
+
         this.getInfo({
             success:(result)=>{
                 
             },
+        })
+
+        this.with({
+            image:(que369)=>{
+               console.log( que369 )
+            }
         })
     }
 
@@ -39,5 +46,9 @@ public class InferParamType{
 
     getInfo(ops:AsyncRequestOptions<RequestOptions,ChooseImageSuccessCallbackResult,any>){
 
+    }
+
+    with(withs:string|Record<(query?:this)=>any>){
+        return this;
     }
 }

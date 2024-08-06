@@ -34,6 +34,12 @@ describe('test InferParamType', function() {
         let contentType = argument.attribute('header').init.attribute('contentType')
         expect('(res: string)=>void').toBe( contentType.type().toString() ); 
 
+        argument = body[3].expression.arguments[0];
+        let image = argument.attribute('image');
+
+        let param = image.type().params[0]
+        expect('this').toBe( param.type().toString() );
+
     });
 
 });
