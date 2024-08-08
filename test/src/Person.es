@@ -3,7 +3,6 @@ package;
 import com.TestInterface;
 import Gen;
 
-
 public class Person<T> extends Object implements com.TestInterface
 {
 
