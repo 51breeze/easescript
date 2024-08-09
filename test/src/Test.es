@@ -928,8 +928,8 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
         b.push( this );
 
-        var obj = (object) this.map();
-
+        var obj = (number) this.map();
+        obj.toFixed()
 
           var a = [1,2,[3,4,[5,6]]].flat<uint>();
 
@@ -1019,13 +1019,13 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         console.log(11)
     }
 
-    static _langDefaultClass:class<Test<string,string>> = Test
-    static instances:Map<any,Test<string,string>> = new Map();
-    static use<T extends class<Test<string,string>>>(langClass?:T){
+    static _langDefaultClass:class<Test<string[],string>> = Test
+    static instances:Map<any,Test<string[],string>> = new Map();
+    static use<T extends class<Test<string[],string>>>(langClass?:T){
         langClass = langClass||_langDefaultClass;
         let instance = instances.get(langClass)
         if( !instance ){
-            instances.set(langClass, instance =new langClass() )
+            instances.set(langClass, instance =new langClass(['1']) )
         }
         return instance;
     }
