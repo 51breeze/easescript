@@ -32,7 +32,6 @@ import 'node.es';
 @Runtime(server);
 public class Test<U,B=string> extends Person<string> implements Iterator<number>, TestInterface {
 
-
     // use static {
     //     /**
     //     * find pos 
@@ -1029,7 +1028,6 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         }
         return instance;
     }
-
 }
   
 import Test;

@@ -1,8 +1,12 @@
 package{
 
     public enum Types {
-        ADDRESS,
-        NAME
+        ADDRESS;
+        NAME;
+
+        label(){
+            return '';
+        }
     }
 
 }
