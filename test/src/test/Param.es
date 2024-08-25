@@ -6,7 +6,6 @@ public class Param{
     start(){
         this.express({name:'ssss',type:1})
 
-
         const config:{
             get:(target:string)=>void,
             items:[(target:string)=>void,{

@@ -1,6 +1,7 @@
 ///<scope name='local' />
 ///<reference file='file'/>
 ///<reference file='./assert.d.es'/>
+///<reference file='./php.d.es'/>
 declare interface Matchers {
        
     message(): any;

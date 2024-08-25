@@ -55,6 +55,12 @@ describe('test InferReturn', function() {
             age?: uint
         } | null
         `.replace(/[\s\r\n]/g,'')).toBe( type.toString().replace(/[\s\r\n]/g,'')  )
+
+
+        expression = body[3].expression;
+        type = expression.type();
+
+        expect(`string|uint|boolean`.replace(/[\s\r\n]/g,'')).toBe( type.toString().replace(/[\s\r\n]/g,'')  )
         
     });
        

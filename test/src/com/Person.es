@@ -7,7 +7,7 @@ package com
            this.hasOwnProperty("name");
         }
         set name(value:string){
-
+            time()
         }
 
         get target(){

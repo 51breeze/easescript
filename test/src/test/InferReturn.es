@@ -8,6 +8,7 @@ public class InferReturn{
         this.list();
         this.items();
         this.filter(1)
+        this.getRest()
     }
 
     list(){
@@ -43,5 +44,27 @@ public class InferReturn{
             return {age:30, name:'222'}
         }
         return null;
+    }
+
+    getRest(){
+        if(1){
+            return 'name'
+        }else{
+            if(2){
+                return 1
+            }else{
+                if(9){
+                    return true
+                }else{
+                    return false;
+                }
+            }
+        }
+    }
+
+    getVoid(){
+        if(1){
+            return 'name'
+        }
     }
 }

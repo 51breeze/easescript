@@ -1837,17 +1837,16 @@ declare Class<T=any> extends Object {
 declare interface Interface {}
 
 declare abstract class Enumeration<T=any>{
-    get name():string
-    get value():T
+    const name:string
+    const value:T
     label():string
     use static{
         values():this[]
         keys():string[]
         has(key:string):boolean
-        toValue(key:string):this|null
-        toValue<T=any>(key:string, default:T):T
-        toKey(value:any):string|null
-        toKey<T=any>(value:any, default:T):T
+        valueOf(value:any):this|null
+        keyOf(value:any):string|null
+        labelOf(value:any):string|null
     }
 }
 

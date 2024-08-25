@@ -108,6 +108,8 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
     * the is static getter
     */
     static get uuName():string{
+
+       // time()
         
         return 'uuName';
     }
