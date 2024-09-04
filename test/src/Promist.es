@@ -57,7 +57,6 @@ public class Promist{
         return [bsss,bs];
     }
 
-
 }
   
 import Promist;

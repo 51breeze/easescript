@@ -66,4 +66,8 @@ class PromiseTest{
         return [a,bs,c];
     }
 
+    async test(){
+        await Promise.all([])
+    }
+
 }
