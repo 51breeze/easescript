@@ -40,6 +40,15 @@ describe('test InferParamType', function() {
         let param = image.type().params[0]
         expect('this').toBe( param.type().toString() );
 
+        expect('{}').toBe(  body[4].expression.type().toString() );
+
+    });
+
+    it('testArr', function(){
+        const start = module.getMember('arr');
+        let body = start.body.body[0].argument
+        let expression =  body.arguments[0];
+        expect('(computedGetters: {}, name: string)=>{}').toBe( expression.type().toString(body.getContext()) );
     });
 
 });

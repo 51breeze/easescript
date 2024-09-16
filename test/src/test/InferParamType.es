@@ -34,6 +34,8 @@ public class InferParamType{
                console.log( que369 )
             }
         })
+
+        this.arr()
     }
 
     deep(object:RequestOptions){
@@ -50,5 +52,11 @@ public class InferParamType{
 
     with(withs:string|Record<(query?:this)=>any>){
         return this;
+    }
+
+    arr(){
+        return Object.keys({}).reduce((computedGetters, name) => {
+            return computedGetters;
+        }, {})
     }
 }
