@@ -204,7 +204,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
     start(){
 
-        when( Runtime(php) ){
+        when( Runtime(php) or Runtime(vue) ){
 
         }then{
 
