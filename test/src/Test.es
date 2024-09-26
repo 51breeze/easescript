@@ -210,6 +210,15 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
         }
 
+        const arrV:any[] = [] as Array<any>
+        const arrV2:Array<any> = [] as any[]
+        const objV:{[key:number]:any} = {'1':''}
+        const objV2:Record = {1:''}
+
+        let callmethod = callmethod(1)
+
+        console.log('---', 1 < 2 , 2 >1 )
+
         this.person.name = 'ssss';
 
         this.person.name.replace('ss',(a,b,c)=>{
