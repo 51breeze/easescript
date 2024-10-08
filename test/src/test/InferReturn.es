@@ -9,6 +9,7 @@ public class InferReturn{
         this.items();
         this.filter(1)
         this.getRest()
+        this.success({})
     }
 
     list(){
@@ -66,5 +67,9 @@ public class InferReturn{
         if(1){
             return 'name'
         }
+    }
+
+    success<T>(data:T, code:number=200, msg:string='ok'){
+        return json({data, code, msg}, 200)
     }
 }

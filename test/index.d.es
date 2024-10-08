@@ -1277,3 +1277,6 @@ declare interface CallMethod<B>{
 
 declare const callmethod = CallMethod;
 declare const callmethod2:CallMethod<string>;
+
+
+declare function json<T=any>(data:T, code?:number): T
