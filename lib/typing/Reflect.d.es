@@ -1,31 +1,53 @@
-declare interface ClassDescriptorConfig{
-    type:number
-    class:class<any>
-    className:string
-    namespace:string
-    dynamic:boolean
-    isStatic:boolean
-    privateKey:string
-    implements:class<any>[]
-    inherit:class<any>
-    members:{[key:string]:any}
-    methods:{[key:string]:any}
+declare interface ClassDescriptor{
+    get isClassDescriptor():boolean
+    get mode():number
+    get descriptor():Record | null
+    get classModule():class<any> | null
+    get label():string
+    get className():string
+    get namespace():string
+    get implements():any[]
+    get inherit():class<any> | null
+    get members():MemberDescriptor[]
+    get permission():string
+    isPrivate():boolean
+    isProtected():boolean
+    isPublic():boolean
+    isStatic():boolean
+    isFinal():boolean
+    isAbsract():boolean
+    isDynamic():boolean
+    isClass():boolean
+    isInterface():boolean
+    isEnum():boolean
 }
 
-
-declare interface ClassMemberDescriptorConfig{
-    type?:number
-    class?:class<any>
-    isStatic?:boolean
-    privateKey?:string
-    modifier?:number
-    enumerable:boolean
-    writable:boolean
-    configurable:boolean
-    //get:Function
-    //set:Function
-    value:any
-    method?:Function
+declare interface MemberDescriptor{
+    get isMemberDescriptor():boolean
+    get mode():number
+    get descriptor():Record | null
+    get key():string
+    get owner():class<any> | null
+    get label():string
+    get getter():Function | null
+    get setter():Function | null
+    get value():any
+    get writable():boolean
+    get configurable():boolean
+    get enumerable():boolean
+    get permission():string
+    get privateKey():any
+    isPrivate():boolean
+    isProtected():boolean
+    isPublic():boolean
+    isStatic():boolean
+    isFinal():boolean
+    isAbsract():boolean
+    isMethod():boolean
+    isAccessor():boolean
+    isProperty():boolean
+    isEnumProperty():boolean
+    isClassMember():boolean
 }
 
 declare Reflect{
@@ -38,6 +60,6 @@ declare Reflect{
     static set<T=any>(scope:class<any>|null,target:object,propertyKey:string,value:T,thisArgument?:object):T;
     static incre(scope:class<any>|null,target:object,propertyKey:string,flag?:boolean):number;
     static decre(scope:class<any>|null,target:object,propertyKey:string,flag?:boolean):number;
-    static getDescriptor(target:object):ClassDescriptorConfig | null;
-    static getDescriptor(target:object, propertyKey?:string):null | ClassMemberDescriptorConfig;
+    static getDescriptor(target:object):null | ClassDescriptor;
+    static getDescriptor(target:object, propertyKey:string):null | MemberDescriptor;
 }
