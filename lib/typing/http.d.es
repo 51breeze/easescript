@@ -32,8 +32,7 @@ package net{
         @Callable
         constructor(data: any, headers?: any): any;
     }
-
-    import {CancelToken as HttpCancelToken} from 'axios';
+    
     declare class HttpCancelToken {
         constructor( executor:(cancel:(message)=>void)=>void );
         promise: Promise<HttpCancel>;
@@ -51,7 +50,6 @@ package net{
         static source():HttpCancelTokenSource
     }
 
-    import {Cancel as HttpCancel} from 'axios';
     declare class HttpCancel {
         message: string;
         constructor(message: string);
@@ -90,7 +88,6 @@ package net{
         cancelToken?: HttpCancelToken;
     }
 
-    import Http from 'axios';
     declare class Http{
 
         static create(config?:HttpConfig):Http;

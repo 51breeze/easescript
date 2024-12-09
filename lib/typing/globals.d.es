@@ -1998,7 +1998,6 @@ declare function encodeURIComponent(uriComponent: string | number | boolean): st
 /**
 *  format a string
 */
-import {Base64} from 'js-base64';
 declare static class Base64{
     encode(str: string):string
     decode(base64: string):string
@@ -2007,7 +2006,6 @@ declare static class Base64{
 /**
 * Get md5 string
 */
-import md5 from 'blueimp-md5';
 declare function md5(string:string):string;
 
 package annotation{
