@@ -10,6 +10,8 @@ declare interface ClassDescriptor{
     get inherit():class<any> | null
     get members():MemberDescriptor[]
     get permission():string
+    isPrivatePropertyKey(key): boolean
+    getMemberDescriptor(name:string, isStatic?:boolean):MemberDescriptor|null
     isPrivate():boolean
     isProtected():boolean
     isPublic():boolean
@@ -48,6 +50,10 @@ declare interface MemberDescriptor{
     isProperty():boolean
     isEnumProperty():boolean
     isClassMember():boolean
+    invokeMethod<T=any>(thisArg:Object, ...args):T
+    invokeGetter<T=any>(thisArg:Object):T
+    invokeSetter(thisArg, value:any):void
+    setPropertyValue(value:any):void
 }
 
 declare Reflect{
