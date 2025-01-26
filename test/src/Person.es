@@ -48,6 +48,7 @@ public class Person<T> extends Object implements com.TestInterface
        var bs:float = 22.366
        var bssd:number = -22.366
         this.target.address();
+        this.target.avg<string, any>?.('')
         return "sssss";
     }
 
