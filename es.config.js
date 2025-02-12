@@ -25,14 +25,14 @@ module.exports = {
        
     ],
     plugins:[
-        {
-            name:'es-javascript',
-            plugin:require('../es-javascript'),
-            options:{
-                useAbsolutePathImport:true,
-                sourceMaps:true,
+        // {
+        //     name:'es-javascript',
+        //     plugin:require('../es-javascript'),
+        //     options:{
+        //         useAbsolutePathImport:true,
+        //         sourceMaps:true,
                
-            }
-        }
+        //     }
+        // }
     ]
 }
