@@ -8,6 +8,8 @@ package test{
         get skin(){
             const instance = this.skinInstance;
             if(instance)return instance;
+            let b =  new this.skinClass(10);
+            console.log(b)
             return this.skinInstance = new this.skinClass(10);
         }
 
