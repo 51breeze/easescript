@@ -219,6 +219,10 @@ describe('test Generics', function() {
         [error, result] = TestUtils.createError(errors,`Type 'string' is not assignable to assignment of type 'number'`, 1009);
         expect(error).toEqual(result);
 
+        //testNewArray  a2.push('error') //error
+        [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type 'uint[]'`, 1002);
+        expect(error).toEqual(result);
+
     });
 
 });

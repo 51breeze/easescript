@@ -16,7 +16,7 @@ class GenericConstraint{
     }
 
 
-    static newInstance<T extends class<GenericConstraint>>(classObject:T){
+    static newInstance<T extends class<any>>(classObject:T){
         return new classObject();
     }
 

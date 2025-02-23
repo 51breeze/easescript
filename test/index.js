@@ -3,8 +3,9 @@ const path = require('path')
 const compiler = require("./compiler");
 const root = path.join(__dirname,'./specs');
 const TestUtils = require("./TestUtils");
-const specs = fs.readdirSync( root );
-specs.forEach(file=>require(path.join(root,file)));
+
+// const specs = fs.readdirSync( root );
+// specs.forEach(file=>require(path.join(root,file)));
 
 describe('compile file', function() {
     const creator = new compiler.Creator();

@@ -30,15 +30,14 @@ describe('test GenericConstraint', function() {
 
         let expression = body[4].expression
         expect('{}').toEqual(expression.type().toString())
-
     });
 
     it('should compiler error', function() {
 
-        let [error, result] = TestUtils.createError(errors,`Type 'test.GenericConstraint' does not satisfy the constraint 'class<test.GenericConstraint>'`, 1003);
+        let [error, result] = TestUtils.createError(errors,`Type 'test.GenericConstraint' does not satisfy the constraint 'class<any>'`, 1003);
         expect(error).toEqual(result);
 
-        [error, result] = TestUtils.createError(errors,`Type 'Array<any>' does not satisfy the constraint 'class<test.GenericConstraint>'`, 1003);
+        [error, result] = TestUtils.createError(errors,`Type 'Array<any>' does not satisfy the constraint 'class<any>'`, 1003);
         expect(error).toEqual(result);
     });
 
