@@ -39,7 +39,7 @@ describe('test InferParamType', function() {
 
         let param = image.type().params[0]
         expect('this').toBe( param.type().toString() );
-
+        
         expect('{}').toBe(  body[4].expression.type().toString() );
 
     });
