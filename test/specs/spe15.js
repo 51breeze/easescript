@@ -165,6 +165,10 @@ describe('test Generics', function() {
         let body = start.body.body;
         let expression = body[0].argument;
         expect('string[]').toEqual(expression.type().toString())
+
+        expression.getContext().debug()
+
+
         expression = expression.arguments[0].params[0];
         expect('{key:string,children:any[]}').toEqual(expression.type().toString(expression.getContext()).replace(/[\r\n\s]+/g,''))
     });
