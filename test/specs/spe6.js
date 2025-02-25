@@ -105,7 +105,6 @@ describe('test', function() {
         expect('()=>ProxyHandler<{}>').toBe( start.type().toString() );
         expression = body[1].expression.right;
         expect('(target: {}, key: string, value: any)=>any').toBe(expression.attribute('get').type().toString(expression.getContext(), {inferTypeValueFlag:true}));
-        
     });
 
     it('check arrayType', function(){
@@ -116,7 +115,6 @@ describe('test', function() {
 
         expression = expression.elements[0];
         expect('(target: {}, key: string, value: any)=>boolean').toBe(expression.attribute('set').type().toString( expression.getContext(), {inferTypeValueFlag:true} ));
-
         expression = body[1].expression.arguments[0];
         expect('(target: {}, key: string, value: any)=>any').toBe(expression.attribute('get').type().toString(expression.getContext(), {inferTypeValueFlag:true}));
         
