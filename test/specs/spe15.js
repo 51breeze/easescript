@@ -180,6 +180,9 @@ describe('test Generics', function() {
 
         expression =  body[4].consequent.body[0].declarations[0];
         expect('uint').toEqual(expression.type().toString())
+
+        console.log( expression.init.raw()  )
+
         expect('(local const) age:uint').toEqual(expression.init.definition().expre)
 
         expression = body[6].consequent.body[0].declarations[0];
