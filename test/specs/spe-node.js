@@ -45,6 +45,7 @@ describe('test components Child', function() {
          let expression = start.childrenStack[0];
          let def = expression.specifiers[0].toDefinition();
          if(Array.isArray(def))def = def[0];
+         
          expect(def.expre).toContain('(alias) function assert<T = any>(value: T, message?: string | Error): T')
          expect('assert.d.es').toEqual( path.basename(def.file) )
 

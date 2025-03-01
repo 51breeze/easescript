@@ -64,7 +64,7 @@ class Generics<TD extends string = string>{
             const b = v[0]
             b.toFixed(2)
             return String(b)
-         })
+        })
         Array.of(bs)
         String('')
     }

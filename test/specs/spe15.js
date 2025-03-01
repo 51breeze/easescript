@@ -114,17 +114,6 @@ describe('test Generics', function() {
         expression = expression.arguments[1].body.body[0].declarations[0];
         expect('uint').toEqual(expression.init.type().toString())
 
-        // let ctx = expression.init.object.getContext();
-        // while(ctx){
-        //     ctx.dataset.forEach((v,k)=>{
-        //         console.log( k,  v.type().toString() )
-        //     });
-        //     ctx = ctx.parent;
-        //     if(ctx && ctx.stack){
-        //         console.log( ctx.stack.toString() )
-        //     }
-        // }
-
         expression = body[3].expression;
         expect('uint[][]').toEqual(expression.type().toString())
     });
@@ -180,9 +169,6 @@ describe('test Generics', function() {
 
         expression =  body[4].consequent.body[0].declarations[0];
         expect('uint').toEqual(expression.type().toString())
-
-        console.log( expression.init.raw()  )
-
         expect('(local const) age:uint').toEqual(expression.init.definition().expre)
 
         expression = body[6].consequent.body[0].declarations[0];
