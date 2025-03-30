@@ -1,0 +1,5 @@
+package com;
+
+@interface Decorator{
+
+}

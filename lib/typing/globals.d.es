@@ -1908,3 +1908,7 @@ package annotation{
 
     declare type ReadfileResult = IReadfileResult[];
 }
+
+declare @interface IDecorator{
+
+}

@@ -2,7 +2,15 @@ package;
 
 import com.TestInterface;
 import Gen;
+import fun from "com/fun.es";
+import com.Decorator;
 
+
+
+@fun;
+@Decorator();
+@com.Decorator;
+@IDecorator
 public class Person<T> extends Object implements com.TestInterface
 {
 
@@ -12,7 +20,12 @@ public class Person<T> extends Object implements com.TestInterface
 
     private var _type:T = null;
 
-    constructor( name:string ){
+    constructor(
+        @fun 
+        @Decorator() 
+        @com.Decorator(name='ssss') 
+        name:string ){
+            
         super();
         this._name = name;
         var bsss:T9 = '';

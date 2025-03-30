@@ -6,6 +6,5 @@ package com{
         method( name:string, age:int):any;
         [key:string]:string
         [key:number]:number
-        [MouseEvent.MOUSE_DOWN]:number
     }
 }

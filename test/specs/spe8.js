@@ -36,9 +36,8 @@ describe('test TypeCheck', function() {
         type = expression.arguments[0].type();
         ctx =expression.getContext();
         expect('(resolve: (value: [string,int])=>void, reject: (reason?: any)=>void)=>void').toBe( type.toString(ctx) );
-
-        expression = expression.arguments[0].body.body[0].expression.arguments[0].body.body[0].expression
-        expect('type (value: [string,int])=>void').toBe( expression.definition().expre );
+        expression = expression.arguments[0].body.body[0].expression.arguments[0].body.body[0].expression;
+        expect('(parameter) resolve:(value: [string,int])=>void').toBe( expression.hover().text );
         
     });
 

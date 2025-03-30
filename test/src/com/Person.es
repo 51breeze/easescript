@@ -1,7 +1,9 @@
+import com.Decorator;
+
 package com
 {
     
-    public class Person
+    public class Person implements Decorator
     {
         constructor(){
            this.hasOwnProperty("name");
