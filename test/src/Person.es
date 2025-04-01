@@ -31,6 +31,10 @@ public class Person<T> extends Object implements com.TestInterface
         var bsss:T9 = '';
         const b = new assert.AssertionError()
         process.exit()
+
+
+        Decorator('ssss');
+        com.MyDecorator('ssss')
     }
 
     get target(){
@@ -46,7 +50,7 @@ public class Person<T> extends Object implements com.TestInterface
         return this._type;
     }
 
-    public method( name:string, age:int):any
+    public method( @Decorator() name:string,  @Decorator() age:int):any
     {
         var str:string[] = ["a","1"];
         var b:[string, [string,int] ] = ["", ["1",1] ];
