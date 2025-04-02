@@ -57,7 +57,7 @@ describe('test components Child', function() {
          if(Array.isArray(def))def = def[0];
          expect(def.text).toContain('(alias) function exit(): void')
          def =  expression.specifiers[2].description();
-         
+
          expect('ImportSpecifier').toEqual( def.toString() )
 
          def = def.description();
@@ -67,7 +67,6 @@ describe('test components Child', function() {
          if(Array.isArray(def))def = def[0];
          expect(def.text).toContain('import child')
          expect(def.text).toContain('(local const) child:[]')
-
 
          expression = start.childrenStack[1].expression
          expect('ImportDefaultSpecifier').toEqual( expression.description().toString() )
