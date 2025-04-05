@@ -221,6 +221,8 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
         this.person.name = 'ssss';
 
+        let logicAnd : number = 0 >>> 1;
+
         this.person.name.replace('ss',(a,b,c)=>{
             return ''
         });

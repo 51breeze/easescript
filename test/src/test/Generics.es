@@ -139,4 +139,12 @@ class Generics<TD extends string = string>{
         return true;
     }
 
+     static private services:annotation.ReadfileResult;
+
+    setup(editor){
+       services.map( async(item)=>{
+           
+        });
+    }
+
 }
