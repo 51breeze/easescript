@@ -1022,6 +1022,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
     testComponent(){
         const list6999 = ['ssss'];
+        let sss:string[] = [...list6999];
         this.on(...list6999)
         return new Child()
     }

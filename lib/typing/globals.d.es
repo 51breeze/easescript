@@ -296,7 +296,7 @@ declare Array<T=any> implements Iterator<T>, Iterable{
      * @param thisArg An object to which the this keyword can refer in the callback function. If
      * thisArg is omitted, undefined is used as the this value.
      */
-    flatMap<U=any>(callback:(value: T, index: number, array: T[]) => U,thisArg?:any): U[];
+    flatMap<U=T>(callback:(value: T, index: number, array: T[]) => U,thisArg?:any): U[];
 
     /**
      * Returns a new array with all sub-array elements concatenated into it recursively up to the
@@ -304,7 +304,7 @@ declare Array<T=any> implements Iterator<T>, Iterable{
      *
      * @param depth The maximum recursion depth
      */
-    flat<U=any>(depth:uint = 1):U[];
+    flat<U=T>(depth:uint = 1):U[];
 
     /**
      * Returns the this object after filling the section identified by start and end with value
