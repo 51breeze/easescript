@@ -5,12 +5,12 @@ package {
         value: TYield;
     }
 
-    declare interface IteratorReturnResult<TReturn> {
+    declare interface _IteratorReturnResult<TReturn> {
         done: true;
         value: TReturn;
     }
 
-    declare type IteratorResult<T, TReturn = any> = IteratorYieldResult<T> | IteratorReturnResult<TReturn>;
+    declare type IteratorResult<T, TReturn = any> = IteratorYieldResult<T> | _IteratorReturnResult<TReturn>;
 
     declare interface SymbolConstructor {
         /**

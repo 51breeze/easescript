@@ -1642,7 +1642,7 @@ declare class DataView {
     setUint32(byteOffset: number, value: number, littleEndian?: boolean): void;
 }
 
-declare class Map<K=any,V=any>{
+declare class Map<K=any,V=any> implements Iterator<V>{
    constructor(entries?:[K,V][] | null):Map<K, V>;
    clear(): void;
    delete(key: K): boolean;
@@ -1669,7 +1669,7 @@ declare class Map<K=any,V=any>{
 }
 
 
-declare class Set<T=any>{
+declare class Set<T=any> implements Iterator<T>{
    constructor(values?:T[] | null):Set<T>;
    add(value: T): this;
    clear(): void;

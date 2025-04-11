@@ -23,8 +23,8 @@ describe('test For by test/ForOf.es > ', function() {
         const start = module.getMember('start');
         const body = start.body.body;
         let expression = body[0];
-        
-        expect('any').toBe( expression.left.declarations[0].type().toString() );
+
+        expect('T').toBe( expression.left.declarations[0].type().toString() );
 
         expression = body[2];
         ctx = expression.left.declarations[0].id.getContext();

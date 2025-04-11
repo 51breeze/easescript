@@ -147,4 +147,15 @@ class Generics<TD extends string = string>{
         });
     }
 
+    createReadfileTree<T=Record>(result:annotation.ReadfileResult){
+
+        const tree:Map<string, T> = new Map();
+
+        const ss = [...tree]
+        console.log(ss)
+      
+        return Array.from(tree.values());
+
+    }
+
 }
