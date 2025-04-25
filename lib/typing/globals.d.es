@@ -735,7 +735,7 @@ declare class String implements Iterator<string>, Iterable{
 }
 
 declare class RegExp{
-   constructor( fromat:string );
+   constructor( fromat:string, global?:string );
 
    /**
      * Executes a search on a string using a regular expression pattern, and returns an array containing the results of that search.
@@ -1902,7 +1902,7 @@ package annotation{
     declare interface IReadfileResult{
         path:string,
         isFile?:boolean,
-        content:{[key:string]:string},
+        content:{[key:string]:string} | string | class<any>,
         children?:IReadfileResult[]
     }
 
