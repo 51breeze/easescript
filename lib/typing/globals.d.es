@@ -970,7 +970,7 @@ declare class JSON {
     static stringify(value: any, replacer?: (number | string)[] | (key: string, value: any) => any, space?: string | number): string;
 }
 
-declare class Function {
+declare class Function extends Object{
 
    /**
      * Creates a new function.
