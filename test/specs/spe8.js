@@ -41,6 +41,14 @@ describe('test TypeCheck', function() {
         
     });
 
+
+    it('testIntersectionType', function(){
+        const start = module.getMember('testIntersectionType');
+        let body = start.body.body;
+        expression = body[1].expression;
+        expect('[]').toBe(expression.type().toString());
+    });
+
     it('should compiler error', function() {
         const result=(code,line,kind=0)=>{
             const error = errors.find( item=>{

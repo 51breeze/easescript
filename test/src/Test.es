@@ -627,11 +627,7 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
        bst9.getNamess('111')
 
-
        //this.getNamess(111)
-
-
-
     }
 
     private testKeyof<T9, K extends keyof T9>(t:T9,k:K){

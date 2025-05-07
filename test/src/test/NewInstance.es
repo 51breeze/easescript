@@ -129,4 +129,14 @@ public class NewInstance<T> extends Component< NewInstance<number> >{
         return conf;
     }
 
+    testDeclareVarCall(){
+        const event = new CustomEvent('app.internal.frame.ready',{
+            detail:{
+                mainApp:this,
+            }
+        });
+
+        new window.Event('sss')
+    }
+
 }

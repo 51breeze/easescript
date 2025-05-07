@@ -1280,3 +1280,52 @@ declare const callmethod2:CallMethod<string>;
 
 
 declare function json<T=any>(data:T, code?:number): T
+
+
+declare interface EventInit {
+    bubbles?: boolean;
+    cancelable?: boolean;
+    composed?: boolean;
+}
+
+
+declare interface CustomEventInit<T = any> extends EventInit {
+    detail?: T;
+}
+
+/** [MDN Reference](https://developer.mozilla.org/docs/Web/API/CustomEvent) */
+declare interface CustomEvent<T = any> extends Event {
+    /**
+     * Returns any custom data event was created with. Typically used for synthetic events.
+     *
+     * [MDN Reference](https://developer.mozilla.org/docs/Web/API/CustomEvent/detail)
+     */
+    readonly detail: T;
+    /**
+     * @deprecated
+     *
+     * [MDN Reference](https://developer.mozilla.org/docs/Web/API/CustomEvent/initCustomEvent)
+     */
+    initCustomEvent(type: string, bubbles?: boolean, cancelable?: boolean, detail?: T): void;
+}
+
+declare var CustomEvent: {
+    prototype: CustomEvent;
+    new<T>(type: string, eventInitDict?: CustomEventInit<T>): CustomEvent<T>;
+};
+
+/** [MDN Reference](https://developer.mozilla.org/docs/Web/API/CustomStateSet) */
+interface CustomStateSet {
+    forEach(callbackfn: (value: string, key: string, parent: CustomStateSet) => void, thisArg?: any): void;
+}
+
+declare var CustomStateSet: {
+    prototype: CustomStateSet;
+    new(): CustomStateSet;
+};
+
+package window{
+    declare var Event:{
+        new<T=any>(type:string, eventInitDict?:EventInit):Event;
+    }
+}

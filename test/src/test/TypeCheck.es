@@ -24,5 +24,10 @@ public class TypeCheck<T>{
     test2<T>(type:T,[name:string,age:number]){
         return []
     }
+
+    testIntersectionType(){
+        const properties = Object.assign({}, {items:[]});
+        properties.items
+    }
   
 }

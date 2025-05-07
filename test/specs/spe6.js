@@ -128,5 +128,13 @@ describe('test', function() {
         [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type 'number[]'`, 1002);
         expect(error).toEqual(result);
     });
+
+    it('test testDeclareVarCall', function() {
+
+        const start = module.getMember('testDeclareVarCall');
+        let body = start.body.body;
+        let expression = body[0].declarations[0].init;
+        expect('CustomEvent<{mainApp:this}>').toBe( expression.type().toString().replace(/[\s\r\n]/g,'') );
+    });
        
 });
