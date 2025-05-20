@@ -939,9 +939,9 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
         var obj = (number) this.map();
         obj.toFixed()
 
-          var a = [1,2,[3,4,[5,6]]].flat<uint>();
+          var a = [1,2,[3,4,[5,6]]].flat();
 
-          var ss:number[] =a
+          var ss:(uint | uint[])[] = a
 
          var bsd = [1,2,3, ''].map( val=>val );
 

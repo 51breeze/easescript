@@ -304,7 +304,7 @@ declare Array<T=any> implements Iterator<T>, Iterable{
      *
      * @param depth The maximum recursion depth
      */
-    flat<U=T>(depth:uint = 1):U[];
+    flat<A, D extends number=1>(this:A, depth?:D):FlatArray<A, D>[];
 
     /**
      * Returns the this object after filling the section identified by start and end with value
@@ -327,6 +327,12 @@ declare Array<T=any> implements Iterator<T>, Iterable{
      */
     copyWithin(target: number, start: number, end?: number): T[];
 }
+
+declare type FlatArray<Arr, Depth extends number> = {
+    done: Arr;
+    recur: Arr extends Array<infer InnerArr> ? FlatArray<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+        : Arr;
+}[Depth extends -1 ? "done" : "recur"];
 
 declare class Number {
 

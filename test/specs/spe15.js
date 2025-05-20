@@ -176,6 +176,26 @@ describe('test Generics', function() {
         expect('(local const) age:uint').toEqual(expression.init.definition().expre)
     });
 
+    it('testTypeConditional', function(){
+        const start = module.getMember('testTypeConditional');
+        let body = start.body.body;
+        let expression = body[0].declarations[0]
+        expect('number').toEqual(expression.type().toString())
+
+        expression = body[1].declarations[0]
+        expect('string[]').toEqual(expression.type().toString())
+
+        expression = body[2].declarations[0]
+        expect('string[]').toEqual(expression.type().toString())
+
+        expression = body[3].declarations[0]
+        expect('uint[]').toEqual(expression.type().toString())
+
+        expression = body[4].declarations[0]
+        expect('uint[][]').toEqual(expression.type().toString())
+        
+    });
+
     it('should compiler error', function() {
         let [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type 'uint'`, 1002);
         expect(error).toEqual(result);

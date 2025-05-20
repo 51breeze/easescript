@@ -158,4 +158,45 @@ class Generics<TD extends string = string>{
 
     }
 
+    testTypeConditional(){
+       const result1 = this.testTypeConditionalCall([1])
+       const result2 = this.testTypeConditionalCall([''])
+       const result3 = this.testFlat([['']]);
+       const result4 = this.testFlat([[[1]]], 2);
+       const result5 = this.testFlat([[[1]]], 1);
+    }
+
+    testTypeConditionalCall<K extends Array<any>>(item:K):ExtractItem<K>{
+        return item[0]
+    }
+
+    testFlat<A, D extends number=1>(arr:A,depth?:D):FlatArray<A, D>[]{
+        return arr
+    }
+
+    testFlatThis<A extends any[], D extends number=1>(this:A,depth?:D):FlatArray<A, D>[]{
+        return [1]
+    }
+
+    testFlatArr(){
+        let items:{name:string}[] = []
+        const result = items.map(item=>{
+            return [item];
+        }).flat().sort((a,b)=>{
+            return a.name - b.name
+        })
+
+        items = result
+    }
+
 }
+
+
+declare type ExtractItem<K> = K extends infer P[] ? P extends string ? string[] : number : unknown;
+
+
+declare type FlatArray<Arr, Depth extends number> = {
+    done: Arr;
+    recur: Arr extends Array<infer InnerArr> ? FlatArray<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+        : Arr;
+}[Depth extends -1 ? "done" : "recur"];

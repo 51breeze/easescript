@@ -1,4 +1,5 @@
 module.exports = {
+    debug:false,
     workspace:'test/src',
     scopes:[
         {
