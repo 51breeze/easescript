@@ -61,7 +61,7 @@ class Generics<TD extends string = string>{
         var bs = [1]
         bs.push(1)
         Array.from( bs , (v, k)=>{
-            const b = v[0]
+            const b = v
             b.toFixed(2)
             return String(b)
         })
@@ -187,6 +187,29 @@ class Generics<TD extends string = string>{
         })
 
         items = result
+    }
+
+     testComputedArr(){
+        let items93685:(string|number)[] = [];
+        return items93685[0];
+    }
+
+    testIsArray(){
+        let items93690:string | number[] = [];
+        if( Array.isArray(items93690) ){
+            items93690.push(1)
+        }
+    }
+
+    testArrayFrom(){
+        const bs9865:string[] = ['1'];
+        Array.from(bs9865)
+
+        const bs9866:Map<string, number> = new Map();
+        Array.from(bs9866)
+
+        const bs9867 = [1];
+        Array.from(bs9867)
     }
 
 }

@@ -86,7 +86,7 @@ declare Array<T=any> implements Iterator<T>, Iterable{
    */
    static of<T=any>(...items: T[]): T[];
 
-   static isArray(target:any):boolean;
+   static isArray<V>(target:V):target is (V extends Array<infer B> ? B[] : V);
 
     new(arrayLength?: number): any[];
     new <T>(arrayLength: number): T[];

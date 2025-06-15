@@ -1339,3 +1339,11 @@ package window{
 // interface TesUI{
 //     test<T, K extends Array<T>>(item:K):T extends Array<infer P extends string ? P[] : number> ? P : [1]
 // }
+
+
+declare interface SourceBufferList{
+    const length: number;
+    onaddsourcebuffer: (ev: any) => any;
+    onremovesourcebuffer: (ev: any) => any
+    [index: number]: any;
+}

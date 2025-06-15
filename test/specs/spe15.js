@@ -104,10 +104,10 @@ describe('test Generics', function() {
 
         expression = body[2].expression;
         let fun = expression.descriptor();
-        expect('<uint[], string>(target: Iterator<uint[]> | ArrayLike<uint[]>, callback?: (value: uint[], key: number)=>string)=>string[]').toEqual(
+        expect('<uint, string>(target: Iterator<uint> | ArrayLike<uint>, callback?: (value: uint, key: number)=>string)=>string[]').toEqual(
             fun.type().toString(expression.getContext())
         );
-        expect('(v: uint[], k: number)=>string').toEqual(
+        expect('(v: uint, k: number)=>string').toEqual(
             expression.arguments[1].type().toString(expression.arguments[1].getContext(), {inferTypeValueFlag:true})
         );
 
@@ -194,6 +194,33 @@ describe('test Generics', function() {
         expression = body[4].declarations[0]
         expect('uint[][]').toEqual(expression.type().toString())
         
+    });
+
+    it('testComputedArr', function(){
+        const start = module.getMember('testComputedArr');
+        let body = start.body.body;
+        let expression = body[1].argument;
+        expect('string | number').toEqual(expression.type().toString())
+    });
+
+    it('testIsArray', function(){
+        const start = module.getMember('testIsArray');
+        let body = start.body.body;
+        let expression = body[1].consequent.body[0].expression;
+        expect('number[]').toEqual( expression.callee.object.type().toString())
+    });
+
+    it('testArrayFrom', function(){
+        const start = module.getMember('testArrayFrom');
+        let body = start.body.body;
+        let expression = body[1].expression;
+        expect('string[]').toEqual( expression.type().toString())
+
+        expression = body[3].expression;
+        expect('[string,number][]').toEqual( expression.type().toString())
+
+        expression = body[5].expression;
+        expect('uint[]').toEqual( expression.type().toString())
     });
 
     it('should compiler error', function() {
