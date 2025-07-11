@@ -35,15 +35,13 @@ describe('test InferReturn', function() {
         expression = body[1].expression;
         type = expression.type();
 
-        expect(`
-        {
+        expect(`[{
             name: string,
             age: uint,
             address?: string,
             nickname?: string,
             flag?: boolean
-        }[]
-        `.replace(/[\s\r\n]/g,'')).toBe( type.toString().replace(/[\s\r\n]/g,'')  )
+        }]`.replace(/[\s\r\n]/g,'')).toBe( type.toString().replace(/[\s\r\n]/g,'')  )
 
 
         expression = body[2].expression;
@@ -61,6 +59,10 @@ describe('test InferReturn', function() {
         type = expression.type();
 
         expect(`string|uint|boolean`.replace(/[\s\r\n]/g,'')).toBe( type.toString().replace(/[\s\r\n]/g,'')  )
+
+        expression = body[5].expression;
+
+        expect(`[Record<T, K>,string,DOMRect] | null`).toBe( expression.type().toString() )
         
     });
        

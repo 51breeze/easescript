@@ -34,13 +34,13 @@ describe('test promise', function() {
         expect('(data: [string,number][])=>void').toBe( expression.type().toString( body[2].expression.getContext() ) );
 
         expression = body[3].expression
-        expect('Promise<[string,number][]>').toBe( expression.type().toString() );
+        expect('Promise<[[string,number]]>').toBe( expression.type().toString() );
 
         expression = body[4].expression
-        expect('Promise<([string,number,array]|{bs:[string,number]})[]>').toBe( expression.type().toString().replace(/\s/g,'') );
+        expect('Promise<[[string,number,array],{bs:[string,number]}]>').toBe( expression.type().toString().replace(/\s/g,'') );
 
         expression = body[5].expression
-        expect('(uint | string)[]').toBe( expression.type().toString() );
+        expect('[uint,string]').toBe( expression.type().toString() );
 
 
         let method = module.getMember('loadRemoteData');
@@ -66,7 +66,6 @@ describe('test promise', function() {
         let error = creator.removeError( errors, 1009, 66 );
         expect(`Type '{bss:[string,number]}' is not assignable to assignment of type '[string,number]'`.replace(/(\r\n|\s)+/g,''))
         .toBe( error.message.replace(/(\r\n|\s)+/g,'') )
-
     });
    
 });

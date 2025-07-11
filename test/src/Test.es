@@ -506,8 +506,6 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
 
         bds[ types ] = 99;
 
-        
-
         it(`Generics should is true`,()=>{
            expect( typeof this.avg("test") ).toBe('string');
            expect( ccc.name.toFixed(2) ).toBe( "1.00" );
