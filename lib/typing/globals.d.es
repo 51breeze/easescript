@@ -947,7 +947,7 @@ declare class Date {
 
 declare class Error{
    name: string;
-   const message: string;
+   get message(): string;
    constructor( message:string , options?:{cause?:any,[key:string]:any});
 }
 
@@ -1917,4 +1917,13 @@ package annotation{
 
 declare @interface IDecorator{
 
+}
+
+declare abstract class DataEntity{
+    load(data:Record<string|number, string>):this;
+    //validator(validate:(value:any,key:string)=>boolean):this;
+    check(validate:(value:any,key:string)=>any):this;
+    toEntity(excludes:string[], verify?:boolean):Record<string|number, string>
+    toEntity(verify:boolean):Record<string|number, string>
+    toEntity():Record<string|number, string>
 }

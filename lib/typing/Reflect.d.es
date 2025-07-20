@@ -22,6 +22,7 @@ declare interface ClassDescriptor{
     isClass():boolean
     isInterface():boolean
     isEnum():boolean
+    isStruct():boolean
 }
 
 declare interface MemberDescriptor{
@@ -46,9 +47,11 @@ declare interface MemberDescriptor{
     isFinal():boolean
     isAbsract():boolean
     isMethod():boolean
+    isOptional():boolean
     isAccessor():boolean
     isProperty():boolean
     isEnumProperty():boolean
+    isColumn():boolean
     isClassMember():boolean
     invokeMethod<T=any>(thisArg:Object, ...args):T
     invokeGetter<T=any>(thisArg:Object):T
@@ -57,6 +60,23 @@ declare interface MemberDescriptor{
 }
 
 declare Reflect{
+    static MODIFIER_PUBLIC:number;
+    static MODIFIER_PROTECTED:number;
+    static MODIFIER_PRIVATE:number;
+    static MODIFIER_STATIC:number;
+    static MODIFIER_FINAL:number;
+    static MODIFIER_ABSTRACT:number;
+    static MODIFIER_OPTIONAL:number;
+    static KIND_ACCESSOR:number;
+    static KIND_PROPERTY:number;
+    static KIND_READONLY:number;
+    static KIND_METHOD:number;
+    static KIND_ENUM_PROPERTY:number;
+    static KIND_CLASS:number;
+    static KIND_INTERFACE:number;
+    static KIND_ENUM:number;
+    static KIND_STRUCT:number;
+    static KIND_STRUCT_COLUMN:number;
     static apply<T=any>(fun:()=>T, thisArgument?:object, argumentsList?:any[]):T;
     static call<T=any>(scope:class<any>,target:object,propertyKey:string,argumentsList?:any[],thisArgument?:object):T;
     static construct<T=any>(classTarget:class<T>, args?:any[]):T;
@@ -67,5 +87,6 @@ declare Reflect{
     static incre(scope:class<any>|null,target:object,propertyKey:string,flag?:boolean):number;
     static decre(scope:class<any>|null,target:object,propertyKey:string,flag?:boolean):number;
     static getDescriptor(target:object):null | ClassDescriptor;
-    static getDescriptor(target:object, propertyKey:string):null | MemberDescriptor;
+    static getDescriptor(target:object, propertyKey:string, mode?:number):null | MemberDescriptor;
+    static getDescriptors(target:object,mode?:number):null | ClassDescriptor;
 }
