@@ -223,6 +223,13 @@ describe('test Generics', function() {
         expect('uint[]').toEqual( expression.type().toString())
     });
 
+    it('testInferWrapType', function(){
+        const start = module.getMember('testInferWrapType');
+        let body = start.body.body;
+        let expression = body[0].expression;
+        expect('function watch<uint>(source: WatchSource<uint>, callback: WatchCallback<uint>, options?: WatchOptions): ()=>void').toEqual( expression.hover().text )
+    });
+
     it('should compiler error', function() {
         let [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type 'uint'`, 1002);
         expect(error).toEqual(result);

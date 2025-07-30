@@ -212,6 +212,13 @@ class Generics<TD extends string = string>{
         Array.from(bs9867)
     }
 
+    testInferWrapType(){
+        watch((q)=>1, (newValue)=>{
+
+        })
+        //ss
+    }
+
 }
 
 

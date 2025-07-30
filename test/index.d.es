@@ -1347,3 +1347,26 @@ declare interface SourceBufferList{
     onremovesourcebuffer: (ev: any) => any
     [index: number]: any;
 }
+
+
+declare interface Ref<T=any>{
+    value: T;
+}
+
+declare function watch<T991=any>(source: WatchSource<T991>,callback:WatchCallback<T991>,options?:WatchOptions):()=>void
+declare type WatchCallback<T992=any> = (value: T992,oldValue: T992, onCleanup: (cleanupFn: () => void) => void) => void
+declare type WatchSource<T993=any> = Ref<T993> | ((a) => T993) | object;
+
+declare interface WatchEffectOptions {
+    flush?: 'pre' | 'post' | 'sync' // 默认：'pre'
+    onTrack?: (event: Record) => void
+    onTrigger?: (event: Record) => void
+}
+
+declare interface WatchOptions extends WatchEffectOptions {
+    immediate?: boolean // 默认：false
+    deep?: boolean // 默认：false
+    flush?: 'pre' | 'post' | 'sync' // 默认：'pre'
+    onTrack?: (event: Record) => void
+    onTrigger?: (event: Record) => void
+}
