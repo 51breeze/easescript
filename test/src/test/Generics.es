@@ -221,7 +221,6 @@ class Generics<TD extends string = string>{
 
 }
 
-
 declare type ExtractItem<K> = K extends infer P[] ? P extends string ? string[] : number : unknown;
 
 
