@@ -1,6 +1,4 @@
-const Compiler = require("../lib/core/Compiler");
-const Diagnostic = require("../lib/core/Diagnostic");
-const Compilation = require("../lib/core/Compilation");
+const {Compiler, Diagnostic,Compilation} = require("../dist/index.cjs");
 const path =require("path");
 const _compiler = new Compiler(Object.assign({
     debug:false,
@@ -17,7 +15,6 @@ const _compiler = new Compiler(Object.assign({
         locations:true
     }
 },{}));
-
 
 //  const fs = require("fs");
 //  const _compilation = new Compilation(_compiler)

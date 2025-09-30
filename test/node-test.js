@@ -1,9 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const TestUtils = require("./TestUtils");
-const Compiler = require("../lib/core/Compiler");
-const Diagnostic = require("../lib/core/Diagnostic");
-const Compilation = require("../lib/core/Compilation");
+const {Compiler, Diagnostic, Compilation} = require("../dist/index.cjs");
 const _compiler = new Compiler(Object.assign({
     debug:true,
     throwParseError:true,

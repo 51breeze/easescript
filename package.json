@@ -1,8 +1,9 @@
 {
   "name": "easescript",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "EaseScript Is Compiler For Web Development",
-  "main": "lib/index.js",
+  "main": "dist/index.cjs",
+  "type": "commonjs",
   "scripts": {
     "version": "node ./bin/es.js -V",
     "test": "jasmine ./test/index.js",
@@ -18,7 +19,6 @@
     "EaseScript",
     "web"
   ],
-  "type": "commonjs",
   "author": "Jun Ye",
   "license": "MIT",
   "bugs": {

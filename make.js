@@ -31,6 +31,7 @@ content.push(`const create=function(compilation,node,scope,parentNode,parentStac
 files.forEach( (file)=>{
     const info = path.parse(file)
     if( info.name != "index"){
+        //content.push(`import ${info.name} from "./stacks/${file}";\ntokens.${info.name}=${info.name};`)
         content.push(`tokens.${info.name}=require('./stacks/${file}');`)
     }
 });
