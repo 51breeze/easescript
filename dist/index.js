@@ -5903,6 +5903,9 @@ var require_Module = __commonJS({
         }
         if (!Utils.isType(type2))
           return false;
+        if (this.id === "VNode" && Module.is(type2) && type2.id === "VNode") {
+          return true;
+        }
         type2 = this.inferType(type2, context);
         if (type2.isUnionType) {
           return type2.elements.every((item2) => this.is(item2.type(), context));
@@ -6075,7 +6078,7 @@ var require_Module = __commonJS({
           }
           return false;
         };
-        let _res = check(this, type2) || check(type2, this, true);
+        let _res = check(this, type2);
         this[symbolKey]._processing = null;
         return _res;
       }
@@ -7821,15 +7824,16 @@ var require_LiteralObjectType = __commonJS({
         const properties = Array.from(this.properties).map((item2) => {
           const [name, base] = item2;
           const type2 = base.type();
+          const ctx = type2.isClassGenericType || Utils.isModule(type2) ? null : context;
           const origin = this.target && this.target.attribute(name);
           if (origin && origin.computed) {
-            return `[${name}]: ` + type2.toString(context, options);
+            return `[${name}]: ` + type2.toString(ctx, options);
           }
           let question = origin && origin.question ? "?" : "";
           if (this.questionProperties && this.questionProperties[name]) {
             question = "?";
           }
-          return `${name}${question}: ` + type2.toString(context, options);
+          return `${name}${question}: ` + type2.toString(ctx, options);
         });
         if (this.target && this.target.isTypeObjectDefinition) {
           const descriptors = this.target.callDefinitions;
@@ -13192,7 +13196,7 @@ var require_Stack = __commonJS({
       getIteratorResultType(type2, ctx) {
         const iterator = Namespace.globals.get("Iterator");
         const origin = Utils.getOriginType(type2);
-        if (Utils.isModule(origin) && origin.is(iterator)) {
+        if (Utils.isModule(origin) && iterator.is(origin)) {
           const IteratorReturnResult = Namespace.globals.get("IteratorReturnResult");
           let declareGenerics = iterator.getModuleGenerics();
           if (declareGenerics) {
@@ -15119,7 +15123,8 @@ var require_LiteralArrayType = __commonJS({
           const type2 = item2.type();
           if (type2 === this)
             return "any";
-          return type2.toString(context, options);
+          const ctx = type2.isClassGenericType || Utils.isModule(type2) ? null : context;
+          return type2.toString(ctx, options);
         }).join(", ");
         return `[${elements}]`;
       }
@@ -15594,26 +15599,29 @@ var require_FunctionType = __commonJS({
               const name = property.key.value();
               const acceptType = property.type();
               const init = property.init;
+              const ctx = acceptType.isClassGenericType || Utils.isModule(type) ? null : context;
               if (init && init.isAssignmentPattern) {
-                return `${init.left.value()}:${acceptType.toString(context, options)} = ${init.right.raw()}`;
+                return `${init.left.value()}:${acceptType.toString(ctx, options)} = ${init.right.raw()}`;
               }
-              return `${name}:${acceptType.toString(context, options)}`;
+              return `${name}:${acceptType.toString(ctx, options)}`;
             });
             return `{${properties.join(",")}}`;
           } else if (item2.isArrayPattern) {
             const properties = item2.elements.map((property) => {
               if (property.isAssignmentPattern) {
                 const acceptType2 = property.type();
-                return `${property.left.value()}:${acceptType2.toString(context, options)} = ${property.right.raw()}`;
+                const ctx2 = acceptType2.isClassGenericType || Utils.isModule(type) ? null : context;
+                return `${property.left.value()}:${acceptType2.toString(ctx2, options)} = ${property.right.raw()}`;
               }
               const name = property.value();
               const acceptType = property.type();
-              return `${name}:${acceptType.toString(context, options)}`;
+              const ctx = acceptType.isClassGenericType || Utils.isModule(type) ? null : context;
+              return `${name}:${acceptType.toString(ctx, options)}`;
             });
             return `[${properties.join(",")}]`;
           } else {
             const type2 = _params[index].type();
-            let ctx = context;
+            let ctx = type2.isClassGenericType || Utils.isModule(type2) ? null : context;
             if (hasNested(type2)) {
               ctx = {};
             }
@@ -16648,6 +16656,16 @@ var require_BinaryExpression = __commonJS({
       "object",
       "class"
     ];
+    function getTypeId(type2) {
+      if (!type2)
+        return null;
+      if (type2.isLiteralType) {
+        return getTypeId(type2.inherit.type());
+      } else if (type2.isAliasType) {
+        return type2.id;
+      }
+      return null;
+    }
     var BinaryExpression = class extends Expression {
       constructor(compilation, node2, scope, parentNode, parentStack) {
         super(compilation, node2, scope, parentNode, parentStack);
@@ -16689,6 +16707,19 @@ var require_BinaryExpression = __commonJS({
             if (stringType.check(this.left, ctx) || stringType.check(this.right, ctx)) {
               return stringType;
             }
+          }
+          const id1 = getTypeId(this.left.type());
+          const id2 = getTypeId(this.right.type());
+          if (id1 === "NaN" || id2 === "NaN") {
+            return Namespace.globals.get("NaN");
+          } else if (id1 === "float" || id2 === "float") {
+            return Namespace.globals.get("float");
+          } else if (id1 === "double" || id2 === "double") {
+            return Namespace.globals.get("double");
+          } else if (id1 === "uint" && id2 === "uint") {
+            return Namespace.globals.get("uint");
+          } else if ((id1 === "int" || id2 === "int") && !(id1 === "number" || id2 === "number")) {
+            return Namespace.globals.get("int");
           }
           return Namespace.globals.get("number");
         }
@@ -18833,6 +18864,13 @@ var require_AliasType = __commonJS({
         const type2 = stack && stack.type();
         if (!type2)
           return false;
+        if (type2.isAliasType) {
+          return this.is(type2.inherit.type(), context, options);
+        } else if (type2.isIntersectionType) {
+          return [type2.left, type2.right].some((item2) => this.is(item2.type(), context, options));
+        } else if (type2.isEnumType) {
+          return this.is(type2.inherit.type(), context, options);
+        }
         if (!this.isNeedCheckType(type2))
           return true;
         return this.inherit.type().check(stack, context, options);
@@ -18840,12 +18878,19 @@ var require_AliasType = __commonJS({
       is(type2, context, options = {}) {
         if (!type2 || !(type2 instanceof Type))
           return false;
+        if (type2.isAliasType) {
+          return this.is(type2.inherit.type(), context, options);
+        }
         type2 = this.inferType(type2, context);
         type2 = this.getWrapAssignType(type2);
         if (!this.isNeedCheckType(type2))
           return true;
         if (type2.isUnionType) {
           return type2.elements.every((item2) => this.is(item2.type(), context, options));
+        } else if (type2.isIntersectionType) {
+          return [type2.left, type2.right].some((item2) => this.is(item2.type(), context, options));
+        } else if (type2.isEnumType) {
+          return this.is(type2.inherit.type(), context, options);
         }
         if (this.toString() === "object") {
           return !Utils.isScalar(type2) && this.inherit.type().is(type2, context, options);
@@ -22076,7 +22121,8 @@ var require_ForOfStatement = __commonJS({
         if (this.body) {
           this.body.parser();
         }
-        const iterator = this.getGlobalTypeById("Iterator");
+        const iterator = Namespace.globals.get("Iterator");
+        const object = Namespace.globals.get("Object");
         const type2 = Utils.getOriginType(this.right.type());
         if (this.left.isVariableDeclaration) {
           if (this.left.declarations.length > 1) {
@@ -22086,7 +22132,7 @@ var require_ForOfStatement = __commonJS({
             this.left.declarations[0].init.error(1048, "for-of");
           }
         }
-        if (type2 && !type2.isAnyType && !type2.is(iterator)) {
+        if (type2 && !type2.isAnyType && !(iterator.is(type2) || object.is(type2))) {
           this.right.error(1049, this.right.raw());
         }
       }
@@ -31049,7 +31095,7 @@ var require_SpreadElement = __commonJS({
         if (this.parentStack.isArrayExpression || this.parentStack.isCallExpression || this.parentStack.isNewExpression) {
           const arrayType = Namespace.globals.get("array");
           const iteratorType = Namespace.globals.get("Iterator");
-          if (!(arrayType.is(type2) || type2.is(iteratorType))) {
+          if (!(arrayType.is(type2) || iteratorType.is(type2))) {
             this.error(1073, this.argument.value());
           }
         } else if (this.parentStack.isObjectExpression) {
@@ -32143,7 +32189,7 @@ var require_ConditionalExpressionType = __commonJS({
         if (alternate.isConditionalExpressionType) {
           items.push(...alternate.extracts());
         } else {
-          items.push(consequent);
+          items.push(alternate);
         }
         return items;
       }
