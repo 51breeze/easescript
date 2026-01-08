@@ -65,5 +65,14 @@ describe('test InferReturn', function() {
         expect(`[Record<T, K>,string,DOMRect] | null`).toBe( expression.type().toString() )
         
     });
+
+
+    it('testReturnClassGenericType', function(){
+        const start = module.getMember('testReturnClassGenericType');
+        let body = start.body.body;
+        let expression = body[1].expression;
+        let call = expression.arguments[0]
+        
+    });
        
 });

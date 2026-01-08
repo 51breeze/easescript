@@ -62,13 +62,16 @@ declare interface IteratorReturnResult<T=any>{
 }
 
 declare interface RegExpMatchArray extends Array<string> {
-   var index?: number;
-   var input?: string;
+   index?: number;
+   input?: string;
 }
 
 declare interface RegExpExecArray extends Array<string> {
-   var index: number;
-   var input: string;
+    index: number;
+    input: string;
+    groups?: {
+        [key: string]: string;
+    };
 }
 
 declare Array<T=any> implements Iterator<T>, Iterable{
@@ -590,7 +593,7 @@ declare class String implements Iterator<string>, Iterable{
      * Matches a string with a regular expression, and returns an array containing the results of that search.
      * @param regexp A variable name or string literal containing the regular expression pattern and flags.
      */
-    matchAll(regexp: string | RegExp): RegExpMatchArray | null;
+    matchAll(regexp: string | RegExp): Iterator<RegExpExecArray> | null;
 
     /**
      * Replaces text in a string, using a regular expression or search string.
@@ -747,7 +750,7 @@ declare class RegExp{
      * Executes a search on a string using a regular expression pattern, and returns an array containing the results of that search.
      * @param string The String object or string literal on which to perform the search.
      */
-    exec(value: string): RegExpExecArray | null;
+    exec(value: string): Iterator<RegExpExecArray> | null;
 
     /**
      * Returns a Boolean value that indicates whether or not a pattern exists in a searched string.

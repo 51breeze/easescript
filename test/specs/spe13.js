@@ -37,6 +37,16 @@ describe('test GenericConstraint', function() {
 
     });
 
+    it('arrayPattern', function(){
+        const start = module.getMember('arrayPattern');
+        let body = start.body.body;
+        let expression = body[1].expression;
+        let fn = expression.arguments[0];
+        let arrayPattern = fn.params[0];
+        expect('number').toEqual(arrayPattern.elements[0].type().toString())
+        expect('string').toEqual(arrayPattern.elements[1].type().toString())
+    });
+
     it('should compiler error', function() {
 
         let [error, result] = TestUtils.createError(errors,`Variable 'T' cannot redeclare`, 1007);

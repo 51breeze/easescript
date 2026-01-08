@@ -119,4 +119,13 @@ public class InferReturn{
         return null;
     }
 
+    testReturnClassGenericType(){
+        const loadRemoteData = async()=>{
+            return ['', 1]
+        }
+        Promise.all(
+            Array.from([1]).map(loadRemoteData)
+        )
+    }
+
 }

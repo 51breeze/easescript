@@ -104,4 +104,13 @@ public class Param{
     args(a){
         return [arguments.length, arguments[2], arguments, a];
     }
+
+    arrayPattern(){
+        const records = new Map<number, string>()
+        Array.from(records.entries()).map(
+			([key6699, value6699])=>{
+				return key6699
+			}
+		)
+    }
 }

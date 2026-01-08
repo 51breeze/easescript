@@ -1,3 +1,4 @@
+import JSONElement;
 
 struct table admin{
   id: int(11) not null  AUTO_INCREMENT,
@@ -34,6 +35,16 @@ class Index{
 
     start(){
 
+        const info:JSONElement = {
+            type:'',
+            data:{},
+            uid:'',
+            children:[]
+        }
+        info.children.forEach(child=>{
+            child.data
+        })
+        
         const callback:Function = ()=>1;
         callback();
 
@@ -42,6 +53,10 @@ class Index{
 
         Index.find(1);
 
+        const load = async(update99999?:boolean=false)=>{
+            return 1
+        }
+        
 
         type T988 = number[];
         const list999:T988 = [];
@@ -54,7 +69,6 @@ class Index{
                 group[item] = [item];
             }
         });
-  
 
         type Item = {
             name:string,

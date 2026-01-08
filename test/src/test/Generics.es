@@ -219,6 +219,12 @@ class Generics<TD extends string = string>{
         //ss
     }
 
+    testAssignFn(scope:ScopeType<DataRow>){
+        scope.column.sortMethod=(a, b)=>{
+            return 1;
+        }
+    }
+
 }
 
 declare type ExtractItem<K> = K extends infer P[] ? P extends string ? string[] : number : unknown;
@@ -229,3 +235,21 @@ declare type FlatArray<Arr, Depth extends number> = {
     recur: Arr extends Array<infer InnerArr> ? FlatArray<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
         : Arr;
 }[Depth extends -1 ? "done" : "recur"];
+
+declare type FieldType = 'string' | 'number' | 'boolean'
+declare type DataColumn = {type:FieldType, raw:string, kind:'input'}
+declare type DataRow = {
+	"mf81zca83ct7":DataColumn,
+	"mf81zca83ct6":DataColumn
+}
+declare type ScopeType<T extends object=Record<any, string>>={
+	$index:number,
+	cellIndex:number,
+	row:DataRow,
+	column:Column<T>,
+	store:Record<Function, string>
+}
+
+declare class Column<T extends object=Record<any, string>>{
+    sortMethod:(a:T,b:T)=>number
+}

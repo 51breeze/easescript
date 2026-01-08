@@ -230,6 +230,15 @@ describe('test Generics', function() {
         expect('function watch<uint>(source: WatchSource<uint>, callback: WatchCallback<uint>, options?: WatchOptions): ()=>void').toEqual( expression.hover().text )
     });
 
+    it('testAssignFn', function(){
+        const start = module.getMember('testAssignFn');
+        let body = start.body.body;
+        let expression = body[0].expression;
+        let fn = expression.right;
+        expect('DataRow').toEqual(fn.params[0].type().toString(fn.params[0].getContext()))
+        expect('function (a: DataRow, b: DataRow)=>number').toEqual(fn.hover().expre)
+    });
+
     it('should compiler error', function() {
         let [error, result] = TestUtils.createError(errors,`Argument of type 'string' is not assignable to parameter of type 'uint'`, 1002);
         expect(error).toEqual(result);

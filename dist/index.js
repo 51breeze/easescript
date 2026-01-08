@@ -389,6 +389,7 @@ var require_Parser = __commonJS({
     var SCOPE_ARROW = 16;
     var SCOPE_SUPER = 64;
     var SCOPE_DIRECT_SUPER = 128;
+    var BIND_VAR = 1;
     var BIND_LEXICAL = 2;
     var FUNC_STATEMENT = 1;
     var FUNC_NULLABLE_ID = 4;
@@ -746,7 +747,24 @@ var require_Parser = __commonJS({
             return this.parseIdent(false);
           }
         }
-        return super.parseExprAtom(refDestructuringErrors);
+        const items = this.__$maybeAsyncArrow;
+        const node2 = super.parseExprAtom(refDestructuringErrors);
+        if (items && items.length > 0) {
+          if (node2.type === "Identifier") {
+            if (this.type === tokTypes.question) {
+              const isType = this.step() === tokTypes.colon;
+              if (isType) {
+                this.apply();
+                this.next();
+                node2._optional = true;
+                node2.acceptType = this.parseTypeDefinition();
+              } else {
+                this.apply(-1);
+              }
+            }
+          }
+        }
+        return node2;
       }
       parseParenItem(item2) {
         if (super.eat(tokTypes.colon)) {
@@ -906,7 +924,7 @@ var require_Parser = __commonJS({
       }
       parseBindingAtom() {
         this.__parseBindingAtom = true;
-        const node2 = this.type === tokTypes._this ? this.parseIdent(true) : super.parseBindingAtom();
+        const node2 = this.type === tokTypes._this ? this.parseExprAtom() : super.parseBindingAtom();
         this.__parseBindingAtom = false;
         if (!this.__parseVarIdFlag) {
           if (this.eat(tokTypes.question)) {
@@ -954,6 +972,42 @@ var require_Parser = __commonJS({
         const fn = super.parseArrowExpression(node2, params, isAsync);
         fn.returnType = type2;
         return fn;
+      }
+      toAssignableList(exprList, isBinding) {
+        var end = exprList.length;
+        for (var i = 0; i < end; i++) {
+          var elt = exprList[i];
+          if (elt) {
+            if (elt._optional && elt.acceptType) {
+              elt.optional = true;
+              console.log("--toAssignableList--optional----");
+              delete elt._optional;
+            }
+            if (i === 0 && elt.type === "ThisExpression") {
+              continue;
+            } else {
+              this.toAssignable(elt, isBinding);
+            }
+          }
+        }
+        if (end) {
+          var last = exprList[end - 1];
+          if (this.options.ecmaVersion === 6 && isBinding && last && last.type === "RestElement" && last.argument.type !== "Identifier") {
+            this.unexpected(last.argument.start);
+          }
+        }
+        return exprList;
+      }
+      checkParams(node2, allowDuplicates) {
+        var nameHash = {};
+        for (var i = 0, list = node2.params; i < list.length; i += 1) {
+          var param = list[i];
+          if (i === 0 && param.type === "ThisExpression") {
+            continue;
+          } else {
+            this.checkLVal(param, BIND_VAR, allowDuplicates ? null : nameHash);
+          }
+        }
       }
       parseFunctionBody(node2, isArrowFunction, isMethod) {
         if (!isArrowFunction && this.type === tokTypes.colon) {
@@ -1008,6 +1062,10 @@ var require_Parser = __commonJS({
         return this.finishNode(node2, "NewExpression");
       }
       parseExprList(close, allowTrailingComma, allowEmpty, refDestructuringErrors) {
+        const items = this.__$maybeAsyncArrow;
+        if (!(items && items.length > 0)) {
+          return super.parseExprList(close, allowTrailingComma, allowEmpty, refDestructuringErrors);
+        }
         var elts = [], first = true;
         while (!this.eat(close)) {
           if (!first) {
@@ -1029,8 +1087,17 @@ var require_Parser = __commonJS({
           } else {
             elt = this.parseMaybeAssign(false, refDestructuringErrors);
           }
-          if (refDestructuringErrors && tokTypes.parenR === close && this.eat(tokTypes.colon)) {
-            elt.acceptType = this.parseTypeDefinition();
+          if (refDestructuringErrors && tokTypes.parenR === close && elt) {
+            if ((elt.type === "Identifier" || elt.type === "SpreadElement") && this.eat(tokTypes.colon)) {
+              elt.acceptType = this.parseTypeDefinition();
+              if (this.eat(tokTypes.eq)) {
+                const node2 = this.startNodeAt(elt.start, elt.loc?.start);
+                node2.left = elt;
+                node2.right = this.parseMaybeAssign(false, refDestructuringErrors);
+                this.finishNode(node2, "AssignmentPattern");
+                elt = node2;
+              }
+            }
           }
           elts.push(elt);
         }
@@ -1045,7 +1112,18 @@ var require_Parser = __commonJS({
           optionalChained = this.options.ecmaVersion >= 11 && this.eat(tokTypes.questionDot);
           optional = optionalChained;
         }
+        let items = null;
+        if (maybeAsyncArrow) {
+          items = this.__$maybeAsyncArrow || (this.__$maybeAsyncArrow = []);
+          items.push(1);
+        }
         const node2 = super.parseSubscript(base, startPos, startLoc, noCalls, maybeAsyncArrow, optionalChained);
+        if (items) {
+          items.pop();
+          if (!items.length) {
+            this.__$maybeAsyncArrow = null;
+          }
+        }
         if (node2.type === "CallExpression") {
           if (optional) {
             node2.optional = true;
@@ -7510,6 +7588,10 @@ var require_Diagnostic = __commonJS({
       "\u65B9\u6CD5(%s)\u663E\u793A\u6307\u5B9A\u4E86this\u7C7B\u578B\uFF0C\u6240\u4EE5\u53EA\u80FD\u5728\u6307\u5B9A\u7C7B\u578B\u7684\u5BF9\u8C61\u94FE\u4E2D\u8C03\u7528",
       "The method (%s) specifies this type, so it can only be called in the object chain of the specified type."
     ]);
+    define(1209, "", [
+      `\u5B9A\u4E49\u51FD\u6570"this"\u53C2\u6570\u65F6\u53EA\u80FD\u51FA\u73B0\u5728\u53C2\u6570\u5217\u8868\u7684\u5F00\u5934`,
+      `The "this" parameter of a function, can only appear at the begin of the parameter list`
+    ]);
     module.exports = Diagnostic;
   }
 });
@@ -7578,6 +7660,13 @@ var require_LiteralObjectType = __commonJS({
       });
       return dataset;
     }
+    function checkHasGenericType(target) {
+      for (const item2 of target) {
+        if (item2.type()?.hasGenericType) {
+          return true;
+        }
+      }
+    }
     var LiteralObjectType = class extends Type {
       constructor(inherit, target, properties = null, dynamicProperties = null, questionProperties = null) {
         super("$LiteralObjectType", inherit);
@@ -7593,10 +7682,9 @@ var require_LiteralObjectType = __commonJS({
           return this._hasGenericType;
         }
         this._hasGenericType = false;
-        if (this.properties && Array.from(this.properties.values()).some((item2) => item2.type()?.hasGenericType)) {
+        if (this.properties && checkHasGenericType(this.properties.values())) {
           this._hasGenericType = true;
-        }
-        if (this.dynamicProperties && Array.from(this.dynamicProperties.values()).some((item2) => item2.type()?.hasGenericType)) {
+        } else if (this.dynamicProperties && checkHasGenericType(this.dynamicProperties.values())) {
           this._hasGenericType = true;
         }
         return this._hasGenericType;
@@ -7635,6 +7723,10 @@ var require_LiteralObjectType = __commonJS({
         if (!flag && (!inference || !this.hasGenericType)) {
           return this;
         }
+        if (this[privateKey] === inference) {
+          return this;
+        }
+        this[privateKey] = inference;
         const properties = /* @__PURE__ */ new Map();
         let dynamicProperties = null;
         this.properties.forEach((item2, key) => {
@@ -8356,7 +8448,7 @@ var require_MergeType = __commonJS({
           } else if (type2.isClassGenericType) {
             const key = type2.inherit.type();
             let group = this.types.get(key);
-            if (!group) {
+            if (!group || !(group instanceof MergeType)) {
               group = new MergeType();
               group.classGenericOriginType = type2;
               group.isClassGenericType = type2.isClassType;
@@ -9939,13 +10031,14 @@ var require_Inference = __commonJS({
       });
       return records;
     }
-    function extractGenericsFromType(type2) {
-      if (!type2)
+    function extractGenericsFromType(type2, records = /* @__PURE__ */ new WeakSet()) {
+      if (!type2 || records.has(type2))
         return [];
       if (type2.isGenericType)
         return [type2];
+      records.add(type2);
       if (type2.isAliasType) {
-        return extractGenericsFromType(type2.inherit.type());
+        return extractGenericsFromType(type2.inherit.type(), records);
       }
       let elements = null;
       if (type2.isLiteralObjectType) {
@@ -9977,7 +10070,7 @@ var require_Inference = __commonJS({
         return elements.map((item2) => {
           let _type = item2.type();
           if (_type.hasGenericType) {
-            return extractGenericsFromType(_type);
+            return extractGenericsFromType(_type, records);
           }
           return [];
         }).flat();
@@ -9988,7 +10081,8 @@ var require_Inference = __commonJS({
       if (type2.isAliasType && type2.target && type2.target.isDeclaratorTypeAlias && type2.target.genericity) {
         return type2.target.genericity.elements.map((item2) => item2.type());
       } else if (type2.isClassGenericType && type2.target && type2.target.isTypeGenericDefinition) {
-        return type2.target.getDeclareGenerics()[1].map((item2) => item2.type());
+        const segs = type2.target.getDeclareGenerics();
+        return Array.isArray(segs[1]) ? segs[1].map((item2) => item2.type()) : [];
       } else if (type2.isInstanceofType) {
         type2 = type2.inherit.type();
         if (type2.isAliasType) {
@@ -10027,25 +10121,25 @@ var require_Inference = __commonJS({
       return null;
     }
     function getAssigmentBoundType(generic, declared, assigment) {
-      let assigmentType = assigment.type();
-      if (assigmentType.isTypeofType) {
-        assigmentType = assigmentType.origin.type();
+      let assigmentType2 = assigment.type();
+      if (assigmentType2.isTypeofType) {
+        assigmentType2 = assigmentType2.origin.type();
       }
       if (declared.isGenericType) {
         if (generic.getUniKey() === declared.getUniKey()) {
-          if (assigmentType.isLiteralArrayType) {
-            return MergeType.to(assigmentType, false, false, needToLiteralValue(generic));
+          if (assigmentType2.isLiteralArrayType) {
+            return MergeType.to(assigmentType2, false, false, needToLiteralValue(generic));
           }
-          if (assigmentType.isLiteralType && needToLiteralValue(generic)) {
-            return new LiteralType(assigmentType.inherit, assigmentType.target, assigmentType.value, true);
+          if (assigmentType2.isLiteralType && needToLiteralValue(generic)) {
+            return new LiteralType(assigmentType2.inherit, assigmentType2.target, assigmentType2.value, true);
           }
-          return assigmentType;
+          return assigmentType2;
         }
       }
       if (Utils.isInterface(declared)) {
         let keys = declared.descriptors.keys();
-        let isInterface = Utils.isInterface(assigmentType);
-        if (isInterface && !declared.is(assigmentType)) {
+        let isInterface = Utils.isInterface(assigmentType2);
+        if (isInterface && !declared.is(assigmentType2)) {
           return null;
         }
         for (let key of keys) {
@@ -10054,8 +10148,8 @@ var require_Inference = __commonJS({
             let property = properties[i];
             if (property.isPropertyDefinition || property.isMethodGetterDefinition) {
               let _declared = property.type();
-              if ((assigmentType.isLiteralObjectType || isInterface) && _declared.hasGenericType) {
-                let assigmentPropertry = getObjectProperty(assigmentType, key);
+              if ((assigmentType2.isLiteralObjectType || isInterface) && _declared.hasGenericType) {
+                let assigmentPropertry = getObjectProperty(assigmentType2, key);
                 if (assigmentPropertry) {
                   let res = getAssigmentBoundType(generic, _declared, assigmentPropertry);
                   if (res) {
@@ -10067,13 +10161,13 @@ var require_Inference = __commonJS({
           }
         }
       } else if (declared.isLiteralObjectType) {
-        let isObject = assigmentType.isLiteralObjectType || assigmentType.isEnumType || assigmentType.isInstanceofType || assigmentType.isIntersectionType;
-        let isInterface = isObject ? false : Utils.isInterface(assigmentType);
+        let isObject = assigmentType2.isLiteralObjectType || assigmentType2.isEnumType || assigmentType2.isInstanceofType || assigmentType2.isIntersectionType;
+        let isInterface = isObject ? false : Utils.isInterface(assigmentType2);
         if (isObject || isInterface) {
           let keys = declared.properties.keys();
           for (let key of keys) {
             let property = declared.properties.get(key);
-            let assigmentProperty = getObjectProperty(assigmentType, key);
+            let assigmentProperty = getObjectProperty(assigmentType2, key);
             if (assigmentProperty) {
               let propertyType = property.type();
               if (propertyType.hasGenericType) {
@@ -10087,10 +10181,10 @@ var require_Inference = __commonJS({
         }
       } else if (declared.isTupleType) {
         let elements = declared.elements;
-        if (declared.prefix && assigmentType.isTupleType && assigmentType.prefix) {
-          return getAssigmentBoundType(generic, elements[0].type(), assigmentType.elements[0].type());
-        } else if (declared.prefix && (assigmentType.isLiteralArrayType || assigmentType.isTupleType && !assigmentType.prefix)) {
-          let results = assigmentType.elements;
+        if (declared.prefix && assigmentType2.isTupleType && assigmentType2.prefix) {
+          return getAssigmentBoundType(generic, elements[0].type(), assigmentType2.elements[0].type());
+        } else if (declared.prefix && (assigmentType2.isLiteralArrayType || assigmentType2.isTupleType && !assigmentType2.prefix)) {
+          let results = assigmentType2.elements;
           if (results.length > 0) {
             let constraint = elements[0].type();
             if (constraint.isGenericType) {
@@ -10108,15 +10202,15 @@ var require_Inference = __commonJS({
           } else {
             return getAssigmentBoundType(generic, declared, Namespace.globals.get("any"));
           }
-        } else if (assigmentType.isLiteralArrayType || assigmentType.isTupleType) {
-          let results = assigmentType.elements;
+        } else if (assigmentType2.isLiteralArrayType || assigmentType2.isTupleType) {
+          let results = assigmentType2.elements;
           if (results.length === 0) {
             return getAssigmentBoundType(generic, declared, Namespace.globals.get("any"));
           }
           for (let i = 0; i < elements.length; i++) {
             let el = elements[i];
             let assign = results[i];
-            if (!assign && assigmentType.isTupleType && assigmentType.prefix) {
+            if (!assign && assigmentType2.isTupleType && assigmentType2.prefix) {
               assign = results[0];
             }
             if (assign) {
@@ -10132,11 +10226,11 @@ var require_Inference = __commonJS({
             }
           }
         } else if (declared.prefix) {
-          return getAssigmentBoundType(generic, elements[0].type(), assigmentType);
+          return getAssigmentBoundType(generic, elements[0].type(), assigmentType2);
         } else {
           for (let i = 0; i < elements.length; i++) {
             let el = elements[i];
-            let res = getAssigmentBoundType(generic, el.type(), assigmentType);
+            let res = getAssigmentBoundType(generic, el.type(), assigmentType2);
             if (res) {
               return res;
             }
@@ -10147,10 +10241,10 @@ var require_Inference = __commonJS({
         let last = null;
         for (let i = 0; i < elements.length; i++) {
           let el = elements[i];
-          let res = getAssigmentBoundType(generic, el.type(), assigmentType);
+          let res = getAssigmentBoundType(generic, el.type(), assigmentType2);
           if (res) {
             last = res;
-            if (assigmentType.isFunctionType && !el.type().isFunctionType) {
+            if (assigmentType2.isFunctionType && !el.type().isFunctionType) {
               continue;
             }
             return res;
@@ -10160,74 +10254,74 @@ var require_Inference = __commonJS({
           return last;
         }
       } else if (declared.isFunctionType) {
-        if (assigmentType.isFunctionType) {
+        if (assigmentType2.isFunctionType) {
           const index = declared.params.findIndex((param) => param.isGenericType && generic.getUniKey() === param.getUniKey());
           if (index >= 0) {
-            const _assigment = assigmentType.params[index];
+            const _assigment = assigmentType2.params[index];
             if (_assigment) {
               return _assigment.type();
             }
           } else {
             const rType = declared.getReturnedType();
             if (rType && rType.isGenericType && generic.getUniKey() === rType.getUniKey()) {
-              return assigmentType.getInferReturnType();
+              return assigmentType2.getInferReturnType();
             }
           }
         }
       } else if (declared.isIntersectionType) {
-        return getAssigmentBoundType(generic, declared.left.type(), assigmentType) || getAssigmentBoundType(generic, declared.right.type(), assigmentType);
+        return getAssigmentBoundType(generic, declared.left.type(), assigmentType2) || getAssigmentBoundType(generic, declared.right.type(), assigmentType2);
       } else if (declared.isClassGenericType) {
-        if (assigmentType.isClassGenericType) {
-          if (declared.inherit.type() === assigmentType.inherit.type()) {
+        if (assigmentType2.isClassGenericType) {
+          if (declared.inherit.type() === assigmentType2.inherit.type()) {
             let declareGenerics = getTypeDeclareGenerics(declared.inherit.type());
             let index = declareGenerics.findIndex((decl2) => decl2.getUniKey() === generic.getUniKey());
-            if (index >= 0 && assigmentType.types[index]) {
-              return assigmentType.types[index].type();
+            if (index >= 0 && assigmentType2.types[index]) {
+              return assigmentType2.types[index].type();
             }
-          } else if (assigmentType.types.length > 0) {
-            if (assigmentType.types.length > 1) {
-              return MergeType.arrayToTuple(assigmentType.types, false, false);
+          } else if (assigmentType2.types.length > 0) {
+            if (assigmentType2.types.length > 1) {
+              return MergeType.arrayToTuple(assigmentType2.types, false, false);
             }
-            return assigmentType.types[0].type();
+            return assigmentType2.types[0].type();
           }
-        } else if ((assigmentType.isTupleType || assigmentType.isLiteralArrayType) && declared.inherit.type().is(assigmentType.inherit.type())) {
+        } else if ((assigmentType2.isTupleType || assigmentType2.isLiteralArrayType) && declared.inherit.type().is(assigmentType2.inherit.type())) {
           let declareGenerics = getTypeDeclareGenerics(declared.inherit.type());
           let index = declareGenerics.findIndex((decl2) => decl2.getUniKey() === generic.getUniKey());
           if (index >= 0) {
-            if (assigmentType.prefix && assigmentType.elements.length > 0) {
-              if (assigmentType.elements.length > 1) {
-                const newType = MergeType.mergeTupleElement(assigmentType);
+            if (assigmentType2.prefix && assigmentType2.elements.length > 0) {
+              if (assigmentType2.elements.length > 1) {
+                const newType = MergeType.mergeTupleElement(assigmentType2);
                 return newType.elements[0].type();
               }
-              return assigmentType.elements[0].type();
+              return assigmentType2.elements[0].type();
             } else {
-              return MergeType.arrayToUnion(assigmentType.elements);
+              return MergeType.arrayToUnion(assigmentType2.elements);
             }
           }
         } else {
           const inherit = declared.inherit.type();
           if (inherit.isAliasType) {
-            return getAssigmentBoundType(generic, inherit, assigmentType);
+            return getAssigmentBoundType(generic, inherit, assigmentType2);
           } else {
             let types = declared.types;
             for (let i = 0; i < types.length; i++) {
               let el = types[i].type();
               if (el.hasGenericType) {
-                let res = getAssigmentBoundType(generic, el, assigmentType);
+                let res = getAssigmentBoundType(generic, el, assigmentType2);
                 if (res) {
                   return res;
                 }
               }
             }
-            return getAssigmentBoundType(generic, inherit, assigmentType);
+            return getAssigmentBoundType(generic, inherit, assigmentType2);
           }
         }
       } else if (declared.isAliasType) {
-        return getAssigmentBoundType(generic, declared.inherit.type(), assigmentType);
+        return getAssigmentBoundType(generic, declared.inherit.type(), assigmentType2);
       } else if (declared.isKeyofType) {
-        return getAssigmentBoundType(generic, declared.referenceType.type(), assigmentType);
+        return getAssigmentBoundType(generic, declared.referenceType.type(), assigmentType2);
       } else if (declared.isPredicateType) {
-        return getAssigmentBoundType(generic, declared.value.type(), assigmentType);
+        return getAssigmentBoundType(generic, declared.value.type(), assigmentType2);
       }
       return null;
     }
@@ -10273,6 +10367,9 @@ var require_Inference = __commonJS({
           classDeclareGenerics.forEach((decl2) => {
             let assign = decl2.assignType;
             if (assign) {
+              if (assign.type().isTypeofType) {
+                assigmentType = assign.type().origin.type();
+              }
               push(decl2, assign.type(), records);
               let index = findGenericIndex(relateGenerics, decl2);
               if (index >= 0) {
@@ -10283,14 +10380,17 @@ var require_Inference = __commonJS({
         }
       } else if (context.isTupleType || context.isLiteralArrayType) {
         if (!excludeTuple) {
-          let assigmentType = context.elements.length > 0 ? context.isTupleType && context.prefix ? context.elements[0].type() : MergeType.arrayToUnion(context.elements) : Namespace.globals.get("any");
+          let assigmentType2 = context.elements.length > 0 ? context.isTupleType && context.prefix ? context.elements[0].type() : MergeType.arrayToUnion(context.elements) : Namespace.globals.get("any");
+          if (assigmentType2 && assigmentType2.type().isTypeofType) {
+            assigmentType2 = assigmentType2.type().origin.type();
+          }
           classDeclareGenerics.forEach((decl2) => {
             let index = findGenericIndex(relateGenerics, decl2);
-            push(decl2, assigmentType, records);
+            push(decl2, assigmentType2, records);
             if (index >= 0) {
-              push(relateGenerics[index], assigmentType, records);
+              push(relateGenerics[index], assigmentType2, records);
             }
-            extractContextGenerics(records, assigmentType, null, [], true);
+            extractContextGenerics(records, assigmentType2, null, [], true);
           });
         } else {
           context.elements.forEach((item2) => extractContextGenerics(records, item2.type(), null, [], true));
@@ -10300,6 +10400,9 @@ var require_Inference = __commonJS({
           classDeclareGenerics.forEach((decl2, pos) => {
             let index = findGenericIndex(relateGenerics, decl2);
             let assign = context.generics[pos];
+            if (assign && assign.type().isTypeofType) {
+              assign = assign.type().origin.type();
+            }
             push(decl2, assign, records, true);
             if (index >= 0) {
               push(relateGenerics[index], assign, records, true);
@@ -10314,6 +10417,9 @@ var require_Inference = __commonJS({
           classDeclareGenerics.forEach((decl2, pos) => {
             let index = findGenericIndex(relateGenerics, decl2);
             let assign = context.types[pos];
+            if (assign && assign.type().isTypeofType) {
+              assign = assign.type().origin.type();
+            }
             push(decl2, assign, records, true);
             if (index >= 0) {
               push(relateGenerics[index], assign, records, true);
@@ -10450,9 +10556,9 @@ var require_Inference = __commonJS({
       after.forEach(([declParamItem, declParamType, assigmentArg]) => {
         let declReturnType = declParamType.getReturnedType();
         if (declReturnType && !declReturnType.isVoidType && declReturnType.hasGenericType) {
-          let assigmentType = assigmentArg.type();
-          if (assigmentType && assigmentType.isFunctionType) {
-            let assigmentReturnType = assigmentType.getInferReturnType();
+          let assigmentType2 = assigmentArg.type();
+          if (assigmentType2 && assigmentType2.isFunctionType) {
+            let assigmentReturnType = assigmentType2.getInferReturnType();
             if (assigmentReturnType && !assigmentReturnType.isVoidType) {
               let extractReturnGenerics = extractGenericsFromType(declReturnType);
               let boundValue = null;
@@ -11299,7 +11405,7 @@ var require_Stack = __commonJS({
       getContext() {
         return this.getContextOfInference();
       }
-      getContextOfInference() {
+      getContextOfInference(last = null) {
         let infer = this.#inference;
         if (infer)
           return infer;
@@ -11326,7 +11432,9 @@ var require_Stack = __commonJS({
               pp = pp.parentStack;
             }
             if (pp.isNewExpression || pp.isCallExpression) {
-              parent = pp.getContextOfInference();
+              if (last !== pp) {
+                parent = pp.getContextOfInference();
+              }
             }
           } else if (callee.isMemberExpression) {
             parent = callee.object.getContextOfInference();
@@ -11337,7 +11445,9 @@ var require_Stack = __commonJS({
             pp = pp.parentStack;
           }
           if (pp.isCallExpression || pp.isNewExpression || pp.isVariableDeclarator && pp.acceptType || pp.isAssignmentExpression) {
-            parent = pp.getContextOfInference();
+            if (last !== pp) {
+              parent = pp.getContextOfInference();
+            }
           }
         } else if (this.isDeclarator) {
           if (this.isParamDeclarator) {
@@ -11353,12 +11463,12 @@ var require_Stack = __commonJS({
           } else if (this.isImportSpecifier || this.isImportDefaultSpecifier || this.isImportNamespaceSpecifier) {
             let desc = this.descriptor();
             if (desc && desc !== this && this.is(desc)) {
-              parent = desc.getContextOfInference();
+              parent = desc.getContextOfInference(this);
             }
           } else if (this.isVariableDeclarator && this.init && !this.init.isFunctionExpression && !this.acceptType) {
             parent = this.init.getContextOfInference();
           }
-        } else if (this.isIdentifier || this.isAssignmentExpression) {
+        } else if (this.isIdentifier) {
           let pp = this.parentStack;
           if (pp.isAssignmentPattern) {
             pp = pp.parentStack;
@@ -11366,9 +11476,11 @@ var require_Stack = __commonJS({
           if (!pp.isAnnotationExpression) {
             let desc = this.description();
             if (desc && desc !== this && this.is(desc)) {
-              return desc.getContextOfInference();
+              return desc.getContextOfInference(this);
             }
           }
+        } else if (this.isAssignmentExpression) {
+          return this.left.getContextOfInference();
         } else if (this.isMemberExpression) {
           if (this.parentStack.isImportDeclaration) {
             return this.parentStack.getContextOfInference();
@@ -13175,8 +13287,8 @@ var require_Stack = __commonJS({
           const descriptors = impModule.descriptors.get(key);
           if (descriptors) {
             for (let desc of descriptors) {
-              if (desc.isMethodDefinition && !desc.isMethodSetterDefinition && desc.kind === kind) {
-                if (isStatic && !desc.static) {
+              if (desc.isMethodDefinition && !desc.isMethodSetterDefinition && desc.kind === kind && !Utils.isModifierPrivate(desc)) {
+                if (isStatic !== !!desc.static) {
                   continue;
                 } else {
                   const result2 = desc.returnType;
@@ -13364,6 +13476,7 @@ var require_Declarator = __commonJS({
       constructor(compilation, node2, scope, parentNode, parentStack) {
         super(compilation, node2, scope, parentNode, parentStack);
         this.isDeclarator = true;
+        this.isThisExpression = false;
         if (!(parentStack && (parentStack.isArrayPattern || parentStack.isProperty && parentStack.parentStack.isObjectPattern))) {
           this._acceptType = this.createTokenStack(compilation, node2.acceptType, scope, node2, this);
         }
@@ -13615,17 +13728,25 @@ var require_Declarator = __commonJS({
       }
       getRelateParamType() {
         return this.getAttribute("Declarator.getRelateParamType", () => {
-          if (!this.parentStack.isFunctionExpression) {
-            return null;
-          }
-          const stack = this.parentStack.parentStack;
+          let stack = this.parentStack.parentStack;
           if (stack.isVariableDeclarator && stack.init === this.parentStack) {
             return null;
           }
-          const index = this.parentStack.params.indexOf(this);
+          let pp = this.parentStack;
+          let isPattern = false;
+          let isArrayPattern = !!pp.isArrayPattern;
+          if (isArrayPattern || pp.isObjectPattern) {
+            isPattern = true;
+            stack = stack.parentStack;
+            pp = pp.parentStack;
+          }
+          if (!pp.isFunctionExpression) {
+            return null;
+          }
+          const index = pp.params.indexOf(isPattern ? this.parentStack : this);
           if (!(index >= 0))
             return null;
-          const [declaredParam, _stack] = this.getRelateParamDescription(stack, this.parentStack, index) || [];
+          const [declaredParam, _stack] = this.getRelateParamDescription(stack, pp, index) || [];
           if (!declaredParam || this === declaredParam)
             return null;
           this.setAttribute("Declarator.getRelateParamDescription", declaredParam);
@@ -13657,7 +13778,40 @@ var require_Declarator = __commonJS({
               }
             }
             if (value2 && value2.isGenericType) {
-              return ctx.fetch(value2) || value2;
+              value2 = ctx.fetch(value2) || value2;
+            }
+            if (isPattern && value2) {
+              let type3 = value2.type();
+              if (type3.isAliasType && type3.inherit) {
+                type3 = type3.inherit.type();
+              }
+              if (isArrayPattern) {
+                const index2 = this.parentStack.elements.indexOf(this);
+                if ((type3.isTupleType || type3.isLiteralArrayType) && index2 >= 0) {
+                  let _type = type3.elements[index2];
+                  if (!_type && type3.isTupleType && type3.prefix) {
+                    _type = type3.elements[0];
+                  }
+                  return _type ? _type.type() : null;
+                }
+              } else {
+                const key = this.value();
+                if (type3.isLiteralObjectType || type3.isEnumType || type3.isIntersectionType) {
+                  let _type = type3.attribute(key);
+                  if (!_type && type3.isLiteralObjectType) {
+                    _type = type3.dynamicAttribute(Namespace.globals.get("string"), ctx);
+                  }
+                  return _type ? _type.type() : null;
+                } else if (type3.isModule) {
+                  const desc = getDescriptor(key, (desc2) => {
+                    return (desc2.isPropertyDefinition || desc2.isMethodGetterDefinition) && Utils.isModifierPublic(desc2);
+                  });
+                  if (desc) {
+                    return desc.type();
+                  }
+                }
+              }
+              return null;
             }
             return value2;
           };
@@ -13805,6 +13959,18 @@ var require_Declarator = __commonJS({
           }
           return super.getContext();
         });
+      }
+      value() {
+        if (this.isThisExpression) {
+          return "this";
+        }
+        return super.value();
+      }
+      raw() {
+        if (this.isThisExpression) {
+          return "this";
+        }
+        return super.raw();
       }
       parser() {
         if (super.parser() === false)
@@ -14425,7 +14591,7 @@ var require_ClassGenericType = __commonJS({
       get hasGenericType() {
         return this.types.some((type2) => {
           return type2 && !!(type2.isGenericType || type2.hasGenericType);
-        }) || this.inherit.hasGenericType;
+        });
       }
       getInferResult(context, records) {
         const target = this.inherit.type();
@@ -15368,6 +15534,7 @@ var require_FunctionType = __commonJS({
   "lib/types/FunctionType.js"(exports, module) {
     var Namespace = require_Namespace();
     var Utils = require_Utils();
+    var InstanceofType = require_InstanceofType();
     var Type = require_Type();
     var FunctionType = class extends Type {
       constructor(inherit, target, params, returnType, generics) {
@@ -15399,7 +15566,18 @@ var require_FunctionType = __commonJS({
         const r = this._returnType;
         if (!r && this.target) {
           if (this.target.isFunctionExpression) {
-            return this.target.inferReturnType();
+            const value2 = this.target.inferReturnType();
+            if (this.target.async) {
+              if (this.target.__asyncType) {
+                return this.target.__asyncType;
+              }
+              const origin = Utils.getOriginType(value2);
+              const promiseType = Namespace.globals.get("Promise");
+              if (!promiseType.is(origin)) {
+                return this.target.__asyncType = new InstanceofType(promiseType, null, [value2]);
+              }
+            }
+            return value2;
           } else {
             return this.target.getReturnedType();
           }
@@ -15599,7 +15777,7 @@ var require_FunctionType = __commonJS({
               const name = property.key.value();
               const acceptType = property.type();
               const init = property.init;
-              const ctx = acceptType.isClassGenericType || Utils.isModule(type) ? null : context;
+              const ctx = acceptType.isClassGenericType ? null : context;
               if (init && init.isAssignmentPattern) {
                 return `${init.left.value()}:${acceptType.toString(ctx, options)} = ${init.right.raw()}`;
               }
@@ -15625,7 +15803,7 @@ var require_FunctionType = __commonJS({
             if (hasNested(type2)) {
               ctx = {};
             }
-            const name = item2.value();
+            const name = item2.isThisExpression ? "this" : item2.value();
             const rest = item2.isRestElement ? "..." : "";
             const question = item2.question ? "?" : "";
             if (item2.isAssignmentPattern && item2.right) {
@@ -15690,8 +15868,9 @@ var require_FunctionExpression = __commonJS({
         const first = node2.params[0];
         let assignment = null;
         let hasRest = null;
-        if (first && first.type == "Identifier" && first.name === "this") {
+        if (first && first.type == "ThisExpression") {
           this.thisArgumentContext = new Declarator(compilation, node2.params.shift(), scope, node2, this);
+          this.thisArgumentContext.isThisExpression = true;
         }
         this._hasRecursionReference = false;
         this._recursionCallStacks = null;
@@ -15703,7 +15882,9 @@ var require_FunctionExpression = __commonJS({
             });
           }
           let stack = null;
-          if (item2.type == "Identifier") {
+          if (item2.type == "ThisExpression") {
+            item2.error(1209);
+          } else if (item2.type == "Identifier") {
             stack = new Declarator(compilation, item2, scope, node2, this);
             if (assignment && !stack.question) {
               assignment.error(1050, assignment.value());
@@ -15740,6 +15921,15 @@ var require_FunctionExpression = __commonJS({
         if (this.body) {
           this.compilation.hookAsync("compilation.create.after", async () => {
             this.scope.define("arguments", Namespace.globals.get("IArguments"));
+            let thisArgumentType = this.thisArgumentContext ? this.thisArgumentContext.acceptType : null;
+            if (thisArgumentType) {
+              thisArgumentType = thisArgumentType.type();
+              if (thisArgumentType.isClassGenericType) {
+                thisArgumentType = new InstanceofType(thisArgumentType.type(), this, thisArgumentType.types, true);
+              } else {
+                thisArgumentType = new InstanceofType(thisArgumentType.type(), this, null, true);
+              }
+            }
             if (this.isArrowFunctionExpression) {
               const module2 = this.module;
               if (module2) {
@@ -15750,23 +15940,25 @@ var require_FunctionExpression = __commonJS({
                   }
                   if (pp.isPropertyDefinition) {
                     if (pp.static) {
-                      this.scope.define("this", module2);
+                      this.scope.define("this", thisArgumentType || module2);
                     } else {
-                      this.scope.define("this", new InstanceofType(module2, this, null, true));
+                      this.scope.define("this", thisArgumentType || new InstanceofType(module2, this, null, true));
                     }
                   } else if (pp.isMethodDefinition) {
                     if (pp.static) {
-                      this.scope.define("this", module2);
+                      this.scope.define("this", thisArgumentType || module2);
+                    } else {
+                      this.scope.define("this", thisArgumentType || new InstanceofType(module2, this, null, true));
                     }
                   }
                 } else {
-                  this.scope.define("this", module2);
+                  this.scope.define("this", thisArgumentType || module2);
                 }
               } else {
-                this.scope.define("this", Namespace.globals.get("Record"));
+                this.scope.define("this", thisArgumentType || Namespace.globals.get("Record"));
               }
             } else if (!this.parentStack.isMethodDefinition) {
-              this.scope.define("this", Namespace.globals.get("Record"));
+              this.scope.define("this", thisArgumentType || Namespace.globals.get("Record"));
             }
           });
         }
@@ -15784,7 +15976,7 @@ var require_FunctionExpression = __commonJS({
         if (!ctx || ctx.stack && (ctx.stack === this.key || ctx.stack === this || ctx.stack.isMemberExpression)) {
           complete = true;
           ctx = this.getContext();
-          if (!ctx.inCallChain()) {
+          if (!ctx.inCallChain() && !this.parentStack.isAssignmentExpression) {
             ctx = {};
           }
           if (ctx && ctx.stack && (ctx.stack.isCallExpression || ctx.stack.isNewExpression)) {
@@ -15821,7 +16013,7 @@ var require_FunctionExpression = __commonJS({
             });
             return `[${properties.join(",")}]`;
           } else {
-            const name = item2.value();
+            const name = item2.isThisExpression ? "this" : item2.value();
             const type3 = item2.type().toString(ctx);
             const rest = item2.isRestElement ? "..." : "";
             const question = item2.question ? "?" : "";
@@ -16228,41 +16420,23 @@ var require_FunctionExpression = __commonJS({
             if (this.module.inherit && this.scope.firstSuperIndex != 1) {
               (this.body.childrenStack[0] || this.key).error(1053);
             }
-          } else if (!isInterface && this.body) {
+          } else if (!isInterface && this.body && !(this.scope.returnItems.length > 0)) {
             let acceptType = this.returnType;
             if (acceptType) {
               acceptType = acceptType.type();
-              const hasVoidType = (type2, prev = null) => {
-                if (!type2 || type2 === prev)
-                  return false;
-                if (type2.isGenericType) {
-                  if (type2.assignType) {
-                    return hasVoidType(type2.assignType.type(), type2);
-                  } else if (type2.hasConstraint) {
-                    return hasVoidType(type2.inherit.type(), type2);
+              if (!(acceptType.isVoidType || acceptType.isAnyType || this.async)) {
+                if (this.scope.isArrow && this.scope.isExpression) {
+                  if (!this.body) {
+                    this.error(1133);
                   }
-                  return true;
-                }
-                if (type2.isVoidType || type2.isAnyType)
-                  return true;
-                return type2.isUnionType ? type2.elements.some((el) => hasVoidType(el.type(), type2)) : false;
-              };
-              if (!hasVoidType(acceptType)) {
-                if (this.async) {
-                  const promiseType = Namespace.globals.get("Promise");
-                  if (promiseType && !promiseType.is(acceptType.type())) {
-                    (this._returnType || this).error(1055, promiseType.toString());
-                  }
-                } else if (!this.scope.returnItems.length) {
-                  if (!(this.scope.isArrow && this.scope.isExpression)) {
-                    const target = this.parentStack.isMethodDefinition ? this.parentStack.key : this.key;
-                    const body = this.body;
-                    const has = (body && body.isBlockStatement && body.body).some((item2) => {
-                      return !!(item2 && item2.isThrowStatement);
-                    });
-                    if (!has) {
-                      (target || this).error(1133);
-                    }
+                } else {
+                  const target = this.parentStack.isMethodDefinition ? this.parentStack.key : this.key;
+                  const body = this.body;
+                  const has = (body && body.isBlockStatement && body.body).some((item2) => {
+                    return !!(item2 && item2.isThrowStatement);
+                  });
+                  if (!has) {
+                    (target || this).error(1133);
                   }
                 }
               }
@@ -16345,11 +16519,7 @@ var require_AssignmentExpression = __commonJS({
         return desc;
       }
       getContext() {
-        const desc = this.description();
-        if (desc && desc.isStack) {
-          return desc.getContext();
-        }
-        return super.getContext();
+        return this.left.getContext();
       }
       type(ctx) {
         return this.right.type(ctx);
@@ -18855,7 +19025,7 @@ var require_AliasType = __commonJS({
         return super.definition();
       }
       clone(inference) {
-        if (inference) {
+        if (inference && this.hasGenericType) {
           return new AliasType(this.inherit.clone(inference), this.target);
         }
         return this;
@@ -18918,7 +19088,7 @@ var require_AliasType = __commonJS({
                   return "any";
                 }
               }
-              return decltype.toString({}, _options);
+              return decltype.toString(context, _options);
             });
             return `${key}<${types.join(", ")}>`;
           }
@@ -22797,7 +22967,7 @@ var require_Identifier = __commonJS({
         return null;
       }
       definition(context) {
-        if (this.value() === "arguments") {
+        if (this.value() === "arguments" && !(this.parentStack.isMemberExpression || this.parentStack.isCallExpression)) {
           return {
             text: `(local const) arguments: ${this.type().toString()}`
           };
@@ -22829,7 +22999,7 @@ var require_Identifier = __commonJS({
         return desc.definition(ctx);
       }
       hover(context) {
-        if (this.value() === "arguments") {
+        if (this.value() === "arguments" && !(this.parentStack.isMemberExpression || this.parentStack.isCallExpression)) {
           return {
             text: `(local const) arguments: ${this.type().toString()}`
           };
@@ -22918,8 +23088,20 @@ var require_Identifier = __commonJS({
             }
           }
           var desc = this.scope.define(value2);
-          if (desc && desc.isVariableDeclarator && this.hasNestedReferenceExpression(desc.init, this)) {
-            desc = null;
+          let _desc = desc;
+          if (_desc && _desc.isDeclarator && this.is(_desc)) {
+            if (_desc.parentStack.isProperty && _desc.parentStack.parentStack.isObjectPattern) {
+              _desc = _desc.parentStack.parentStack.parentStack;
+            } else if (_desc.parentStack.isArrayPattern) {
+              _desc = _desc.parentStack.parentStack;
+            }
+          }
+          if (_desc && _desc.isVariableDeclarator && this.hasNestedReferenceExpression(_desc.init, this)) {
+            if (desc.scope === this.scope) {
+              desc = this.scope.parent.define(value2);
+            } else {
+              desc = null;
+            }
           }
           var global = false;
           if (desc) {
@@ -25078,7 +25260,7 @@ var require_JSXAttribute = __commonJS({
               let props = null;
               desc.args.forEach((attr) => {
                 if (attr.type && !props) {
-                  if ((attr.name === "scope" || attr.name === "props") && attr.type.isLiteralObjectType) {
+                  if (attr.name === "scope" || attr.name === "props") {
                     props = attr.type;
                     return;
                   }
@@ -25229,14 +25411,14 @@ var require_JSXAttribute = __commonJS({
                     };
                     stack2.definition = function definition(ctx) {
                       return {
-                        text: `(local let) ${this.value()}:${this.type().toString(ctx | this.getContext())}`,
+                        text: `(local let) ${this.value()}:${this.type().toString(ctx || this.getContext())}`,
                         location: this.getLocation(),
                         file: this.compilation.file
                       };
                     };
                     stack2.hover = function hover(ctx) {
                       return {
-                        text: `(local let) ${this.value()}:${this.type().toString(ctx | this.getContext())}`
+                        text: `(local let) ${this.value()}:${this.type().toString(ctx || this.getContext())}`
                       };
                     };
                   })(stack, mapTypes[index]);
@@ -26345,7 +26527,7 @@ var require_JSXElement = __commonJS({
                 if (!pSlot && slotName !== "default") {
                   isDeclareSlot = true;
                 } else if (pStack.isComponent) {
-                  if (this.openingElement.attributes.length > 0) {
+                  if (this.openingElement.attributes.length > 0 && pSlot) {
                     const attrs = this.openingElement.attributes.filter((attr) => !attr.isAttributeDirective);
                     if (attrs.length > 0) {
                       const isJsx = pSlot && pSlot.isJSXElement && pSlot.openingElement;
@@ -26357,15 +26539,6 @@ var require_JSXElement = __commonJS({
                       }
                     }
                   }
-                  let cache = pStack.getAttribute("componentsUseSlots");
-                  if (!cache) {
-                    pStack.setAttribute("componentsUseSlots", cache = {});
-                  }
-                  if (cache[slotName] === true) {
-                    this.openingElement.name.error(1129, slotName);
-                  } else {
-                    cache[slotName] === true;
-                  }
                 }
               }
             }
@@ -26373,7 +26546,6 @@ var require_JSXElement = __commonJS({
               const declaredSlots = this.module.jsxDeclaredSlots || (this.module.jsxDeclaredSlots = /* @__PURE__ */ new Map());
               this.isSlotDeclared = true;
               if (declaredSlots.has(slotName)) {
-                this.openingElement.name.error(1129, slotName);
               } else {
                 declaredSlots.set(slotName, this);
               }
@@ -26413,9 +26585,9 @@ var require_JSXElement = __commonJS({
                   if (item2.value) {
                     attrDesc.assignment(item2.value, item2.name);
                   }
+                  attrDesc.addUseRef(item2.name);
                 }
               }
-            } else {
             }
           } else if (item2.isAttributeDirective && this.isDirective) {
             item2.name.error(1143);
@@ -26436,25 +26608,8 @@ var require_JSXElement = __commonJS({
             return attr.isAttributeDirective;
           });
         }
-        let needCheckSlotDefine = false;
-        let pSlots = null;
-        let hasDefaultSlot = false;
-        if (this.isWebComponent && desc && !desc.isDeclaratorModule && Utils.isModule(desc)) {
-          if (!(desc.isSkinComponent || desc.isWebComponent) || this.jsxRootElement !== this) {
-            needCheckSlotDefine = true;
-            pSlots = desc.jsxDeclaredSlots;
-            if (pSlots && pSlots.has("default")) {
-              hasDefaultSlot = true;
-            } else {
-              hasDefaultSlot = !!this.getSlotDescription("default", desc);
-            }
-          }
-        }
         this.children.forEach((item2) => {
           item2.parser();
-          if (!item2.isSlot && needCheckSlotDefine && !hasDefaultSlot) {
-            this.openingElement.name.warn(1131, this.openingElement.name.value());
-          }
         });
       }
       value() {
@@ -27695,9 +27850,6 @@ var require_MemberExpression = __commonJS({
         }
         if (pStack && pStack.parentStack.isAnnotationExpression) {
           return [pStack, context];
-        }
-        if (this.isTypeDefinitionStack(pStack.parentStack)) {
-          return [pStack.parentStack, context || pStack.parentStack.getContext()];
         }
         if (this.parentStack.isCallExpression || this.parentStack.isNewExpression) {
           if (this.parentStack.callee === this) {
@@ -32693,8 +32845,16 @@ var require_TypeFunctionDefinition = __commonJS({
         let assignment = null;
         let hasRest = null;
         this.genericity = this.createTokenStack(compilation, node2.genericity, scope, node2, this);
+        this.thisArgumentContext = null;
+        const first = node2.params[0];
+        if (first && first.type == "ThisExpression") {
+          this.thisArgumentContext = new Declarator(compilation, node2.params.shift(), scope, node2, this);
+          this.thisArgumentContext.isThisExpression = true;
+        }
         this.params = node2.params.map((item2) => {
-          if (item2.type == "Identifier") {
+          if (item2.type == "ThisExpression") {
+            item2.error(1209);
+          } else if (item2.type == "Identifier") {
             const stack = new Declarator(compilation, item2, scope, node2, this);
             if (assignment) {
               assignment.error(1050, assignment.value());
@@ -37544,7 +37704,6 @@ var require_Compiler = __commonJS({
     var Lang = require_Lang();
     var Manifester = require_Manifester();
     var dirname = __dirname;
-    var compilations = /* @__PURE__ */ new Map();
     var EventDispatcher = require_EventDispatcher();
     var Diagnostic = require_Diagnostic();
     var Namespace = require_Namespace();
@@ -37552,18 +37711,6 @@ var require_Compiler = __commonJS({
     var ScopeManager = require_ScopeManager();
     var ResolveManager = require_ResolveManager();
     var Logger = require_Logger();
-    var pluginInterfaces = [
-      { name: "name", type: ["string"] },
-      { name: "platform", type: ["string"] },
-      { name: "version", type: ["string", "number"] },
-      { name: "start", type: ["function"] },
-      { name: "build", type: ["function"] },
-      { name: "getGeneratedCodeByFile", type: ["function"] },
-      { name: "getGeneratedSourceMapByFile", type: ["function"] },
-      { name: "getTokenNode", type: ["function"] }
-    ];
-    var SharedInstances = [];
-    var globalCompilations = /* @__PURE__ */ new Set();
     var cacheHandle = {
       pkg: Cache.group("pkg"),
       create: Cache.group("create"),
@@ -37740,45 +37887,28 @@ var require_Compiler = __commonJS({
         }
       };
     }
-    var __compiler = null;
+    var initQueues = [];
     var Compiler = class extends EventDispatcher {
       static is(value2) {
         return value2 ? value2 instanceof Compiler : false;
       }
-      static getCompilations() {
-        return compilations;
-      }
-      static getCompilers() {
-        return SharedInstances;
-      }
-      static compiler() {
-        return __compiler || (__compiler = new Compiler());
-      }
       constructor(options = {}) {
         super();
-        this.rawOptions = options;
-        this.compilations = compilations;
-        this.globals = globalCompilations;
-        this.main = [];
+        this.compilations = /* @__PURE__ */ new Map();
+        this.globals = /* @__PURE__ */ new Set();
         this.regexpSuffix = /\.[a-zA-Z]+$/;
-        this.filesystem = /* @__PURE__ */ new Map();
-        this.grammar = /* @__PURE__ */ new Map();
         this.errors = [];
-        this.utils = Utils;
-        this.restartuping = false;
-        this.configFileRecords = null;
-        this.resolveConfigFile = null;
-        this.diagnostic = Diagnostic;
-        this.pluginInstances = [];
         this.watchers = [];
         this.disconnected = false;
-        this.initQueues = [];
+        this.restartuping = false;
+        this.rawOptions = options;
+        this.configFileRecords = null;
+        this.resolveConfigFile = null;
         this.parseOptions(options);
         this.scopeManager = new ScopeManager(this);
         this.manifester = new Manifester(this);
         this.resolveManager = new ResolveManager(this);
         this.logger = new Logger(this);
-        SharedInstances.push(this);
         process.on("exit", () => {
           this.dispose();
         });
@@ -38844,29 +38974,29 @@ var require_Compiler = __commonJS({
         return dataset;
       }
       initializeDone() {
-        return !!this.initQueues.__done;
+        return !!initQueues.__done;
       }
       initialize() {
         return new Promise(async (resolve) => {
-          if (this.initQueues.__done) {
+          if (initQueues.__done) {
             resolve(true);
           } else {
-            this.initQueues.push(resolve);
-            if (!this.initQueues.__waiting) {
-              this.initQueues.__waiting = true;
-              this.initQueues.__done = false;
+            initQueues.push(resolve);
+            if (!initQueues.__waiting) {
+              initQueues.__waiting = true;
+              initQueues.__done = false;
               this.markMemoryUsage("compiler:initialize");
               await this.__loadGlobalTypes();
               await this.__loadPluginTypes();
               const info = this.getMemoryUsage("compiler:initialize");
               this.printLogInfo(`initialized (${info.current} MB, totoal:${info.total} MB)`, "compiler");
-              this.initQueues.__waiting = false;
-              this.initQueues.__done = true;
+              initQueues.__waiting = false;
+              initQueues.__done = true;
               if (this.options.service || this.options.watch) {
                 this.addWatch();
               }
               let done = null;
-              while (done = this.initQueues.shift()) {
+              while (done = initQueues.shift()) {
                 done(true);
               }
               this.dispatcher("initialized");
@@ -38997,7 +39127,7 @@ var require_Compiler = __commonJS({
         this.markMemoryUsage(this);
         this.printLogInfo(`load-types-start: ${types.join(",\n")}`, "compiler");
         const exclude = (Array.isArray(this.options.excludeDescribeFile) ? this.options.excludeDescribeFile : []).map((file) => this.pathAbsolute(file));
-        const compilations2 = [];
+        const compilations = [];
         const createAsync = async (file) => {
           const aFile = this.pathAbsolute(file);
           if (exclude.includes(aFile) || cacheHandle.create.records(aFile)) {
@@ -39009,18 +39139,18 @@ var require_Compiler = __commonJS({
             compilation.import = "scans";
             compilation.isGlobalFlag = isGlobal;
             compilation.createStack();
-            compilations2.push(compilation);
+            compilations.push(compilation);
           }
           if (compilation && pluginScope.scope === "global") {
             this.globals.add(compilation);
           }
         };
         await Promise.allSettled(types.map((file) => createAsync(file)));
-        await Promise.allSettled(compilations2.map((compilation) => compilation.createCompleted()));
-        await Promise.allSettled(compilations2.map((compilation) => compilation.parserAsync()));
+        await Promise.allSettled(compilations.map((compilation) => compilation.createCompleted()));
+        await Promise.allSettled(compilations.map((compilation) => compilation.parserAsync()));
         const info = this.getMemoryUsage(this);
         this.printLogInfo(`load-types-done(current:${info.current} MB, total:${info.total} MB)`, "compiler");
-        return compilations2;
+        return compilations;
       }
       async callAsyncSequence(items, asyncMethod) {
         if (!Array.isArray(items))
@@ -39037,47 +39167,47 @@ var require_Compiler = __commonJS({
         };
         await callAsync();
       }
-      checkPlugin(plugin) {
-        const result = pluginInterfaces.find((item2) => {
-          const value2 = plugin[item2.name];
-          if (!value2 && item2.option !== true) {
-            throw new Error(`Plugin interface '${item2.name}' not implemented.`);
-          }
-          return !item2.type.includes(typeof value2);
-        });
-        if (result) {
-          throw new Error(`Plugin interface '${result.name}' implemented members type not compatible. must is "${result.type.join(",")}"`);
-        }
-      }
-      applyPlugin(plugin) {
-        if (!plugin) {
-          throw new Error(`Apply plugin invalid. give null`);
-        }
-        let pluginClass = plugin;
-        let pluginOptions = null;
-        if (Object.prototype.toString.call(plugin) === "[object Object]") {
-          if (Object.prototype.hasOwnProperty.call(plugin, "plugin")) {
-            pluginClass = plugin.plugin;
-            pluginOptions = plugin.options;
-            if (typeof pluginClass === "string") {
-              pluginClass = __require(pluginClass);
-            }
-          } else if (Object.prototype.hasOwnProperty.call(plugin, "name")) {
-            pluginClass = __require(plugin.name);
-            pluginOptions = plugin.options;
-          } else {
-            throw new Error(`Plugin config property the 'plugin' is not defined. correct as "{plugin:'plugin-name',options:{}}"`);
-          }
-        }
-        if (typeof pluginClass !== "function") {
-          throw new Error(`Plugin is not function.`);
-        } else {
-          const instance = new pluginClass(this, pluginOptions || {});
-          this.checkPlugin(instance);
-          this.pluginInstances.push(instance);
-          return instance;
-        }
-      }
+      // checkPlugin(plugin){
+      //     const result = pluginInterfaces.find( item=>{
+      //         const value = plugin[item.name];
+      //         if( !value && item.option !== true ){
+      //             throw new Error( `Plugin interface '${item.name}' not implemented.` );
+      //         }
+      //         return !item.type.includes( typeof value );
+      //     });
+      //     if( result ){
+      //         throw new Error( `Plugin interface '${result.name}' implemented members type not compatible. must is "${result.type.join(',')}"` );
+      //     }
+      // }
+      // applyPlugin(plugin){
+      //     if( !plugin ){
+      //         throw new Error( `Apply plugin invalid. give null` );
+      //     }
+      //     let pluginClass = plugin;
+      //     let pluginOptions = null;
+      //     if( Object.prototype.toString.call(plugin) === "[object Object]" ){
+      //         if( Object.prototype.hasOwnProperty.call(plugin,'plugin') ){
+      //             pluginClass = plugin.plugin;
+      //             pluginOptions = plugin.options;
+      //             if( typeof pluginClass === "string" ){
+      //                 pluginClass = require(pluginClass)
+      //             }
+      //         }else if( Object.prototype.hasOwnProperty.call(plugin,'name') ){
+      //             pluginClass = require(plugin.name);
+      //             pluginOptions = plugin.options;
+      //         }else{
+      //             throw new Error( `Plugin config property the 'plugin' is not defined. correct as "{plugin:'plugin-name',options:{}}"` );
+      //         }
+      //     }
+      //     if(typeof pluginClass !== 'function'){
+      //         throw new Error( `Plugin is not function.` );
+      //     }else{
+      //         const instance = new pluginClass(this, pluginOptions||{});
+      //         this.checkPlugin(instance);
+      //         //this.pluginInstances.push(instance);
+      //         return instance;
+      //     }
+      // }
       isPluginInContext(plugin, context, globalResult = true) {
         if (typeof plugin === "object") {
           plugin = plugin.name;
