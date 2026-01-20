@@ -11685,6 +11685,7 @@ var require_Stack = __commonJS({
           if (desc && isMemberExpression) {
             if (!(desc.isImportNamespaceSpecifier || desc.isImportSpecifier || desc.isImportDefaultSpecifier)) {
               desc = null;
+              this._hasLocalDefined = false;
             }
           }
           if (desc) {
@@ -11708,28 +11709,27 @@ var require_Stack = __commonJS({
               if (desc)
                 return desc;
             }
-            return null;
-          } else {
-            if (this.compilation.hasDeclareJSModule) {
-              let pp = this.getParentStack((stack) => stack.isModuleDeclaration && stack.module);
-              if (pp.isModuleDeclaration && pp.module) {
-                if (isMemberExpression) {
-                  const ns = pp.module.namespaces.get(id) || JSModule.getModuleFromNamespace(id);
-                  if (ns) {
-                    return ns;
-                  }
-                }
-                const type2 = this.getTypeFromJSModule(pp.module, id, isMemberExpression, true);
-                if (type2) {
-                  return type2;
+            this._hasLocalDefined = false;
+          }
+          if (this.compilation.hasDeclareJSModule) {
+            let pp = this.getParentStack((stack) => stack.isModuleDeclaration && stack.module);
+            if (pp.isModuleDeclaration && pp.module) {
+              if (isMemberExpression) {
+                const ns = pp.module.namespaces.get(id) || JSModule.getModuleFromNamespace(id);
+                if (ns) {
+                  return ns;
                 }
               }
+              const type2 = this.getTypeFromJSModule(pp.module, id, isMemberExpression, true);
+              if (type2) {
+                return type2;
+              }
             }
-            if (isMemberExpression) {
-              return Namespace.fetch(id, null, true);
-            } else {
-              return this.compilation.getModuleById(id, this.module || this.namespace);
-            }
+          }
+          if (isMemberExpression) {
+            return Namespace.fetch(id, null, true);
+          } else {
+            return this.compilation.getModuleById(id, this.module || this.namespace);
           }
         } else if (this.isMemberExpression) {
           if (!this.parentStack.isMemberExpression) {
@@ -22846,7 +22846,7 @@ var require_Identifier = __commonJS({
               return;
             }
           }
-          const maybe = pp.isCallExpression || pp.isNewExpression || pp.isAssignmentPattern && pp.node.right === this.node || pp.isAssignmentExpression && pp.node.right === this.node || pp.isVariableDeclarator && pp.node.init === this.node || pp.isMemberExpression && pp.node.object === this.node || pp.isProperty && pp.node.value === this.node && !(pp.parentStack.isObjectPattern || pp.parentStack.isArrayPattern);
+          const maybe = pp.isCallExpression || pp.isNewExpression || pp.isAssignmentPattern && pp.node.right === this.node || pp.isAssignmentExpression && pp.node.right === this.node || pp.isVariableDeclarator && pp.node.init === this.node || pp.isMemberExpression && pp.node.object === this.node || pp.isProperty && pp.computed && pp.node.key === this.node || pp.isProperty && pp.node.value === this.node && !(pp.parentStack.isObjectPattern || pp.parentStack.isArrayPattern);
           if (maybe) {
             pp = this.getParentStack((stack) => !stack.isMemberExpression);
             if (pp) {
@@ -22887,7 +22887,7 @@ var require_Identifier = __commonJS({
           } else if ((pStack.isCallExpression || pStack.isNewExpression) && pStack.callee === this) {
             return [pStack, context || pStack.getContext()];
           }
-          if (pStack.isMethodDefinition || pStack.isFunctionDeclaration || pStack.isProperty) {
+          if (pStack.isMethodDefinition || pStack.isFunctionDeclaration || pStack.isProperty && !pStack.computed) {
             if (pStack.key === this) {
               return [pStack, context || pStack.getContext()];
             } else if (pStack.isProperty && pStack.parentStack.isObjectPattern && pStack.init === this) {
@@ -30319,6 +30319,8 @@ var require_Property = __commonJS({
         this.isParamDeclarator = false;
         this.hasInit = node2.value && node2.key !== node2.value;
         if (node2 && parentStack) {
+          this._kind = node2.kind;
+          this.computed = !!node2.computed;
           this.key = this.createTokenStack(compilation, node2.key, scope, node2, this);
           if (parentStack.isObjectPattern) {
             if (node2.value.type == "Identifier") {
@@ -30334,8 +30336,6 @@ var require_Property = __commonJS({
           if (this.init.isAssignmentPattern) {
             this.hasAssignmentPattern = true;
           }
-          this._kind = node2.kind;
-          this.computed = !!node2.computed;
           if (parentStack.isObjectPattern && parentStack && parentStack.parentStack) {
             const p = parentStack.parentStack;
             if (p.isFunctionExpression || p.isTypeFunctionDefinition) {
@@ -30588,7 +30588,7 @@ var require_Property = __commonJS({
         const name = this.value();
         if (!this.parentStack.isObjectPattern) {
           if (this.computed) {
-            const refs = this.scope.define(name);
+            let refs = this.key.description();
             if (this.key.isIdentifier && !refs) {
               this.error(1013, name);
             } else {
