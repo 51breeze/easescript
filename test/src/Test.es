@@ -326,6 +326,12 @@ public class Test<U,B=string> extends Person<string> implements Iterator<number>
             expect(res).toEqual([1,"s","test"]);
         })
 
+        const slots = {} as Record<any, string>;
+        const props = {} as Record<any, string>;
+        if(!slots.default && props.name){
+           
+        }
+
         var b:object = window;
 
         this.testEnumerableProperty();

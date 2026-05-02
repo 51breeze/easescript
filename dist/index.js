@@ -5250,6 +5250,9 @@ var require_Module = __commonJS({
           this[symbolKey].stack = value2;
         }
       }
+      setJSModule(jsModule) {
+        this[symbolKey].jsModule = jsModule;
+      }
       addStack(value2, isDefault = false) {
         if (value2 && value2.isStack) {
           this[symbolKey].stacks.push(value2);
@@ -5968,6 +5971,13 @@ var require_Module = __commonJS({
       }
       type() {
         if (!this.isValid) {
+          const jsModule = this[symbolKey].jsModule;
+          if (jsModule) {
+            return jsModule.getType(this.id) || this;
+          }
+          if (this.isPrivate && this.compilation) {
+            return this.compilation.modules.get(this.getFullName()) || this;
+          }
           return this.namespace.get(this.id) || this;
         }
         return this;
@@ -12549,7 +12559,17 @@ var require_Stack = __commonJS({
                   matchResult = result2;
                   properties.length = 0;
                 } else {
-                  properties.push(result2);
+                  if (this.isMemberExpression) {
+                    const pp = this.getParentStack((stack) => !stack.isMemberExpression);
+                    if (pp.isAssignmentExpression) {
+                      if (result2.isMethodSetterDefinition || result2.isPropertyDefinition || result2.isTypeObjectPropertyDefinition || result2.isProperty && this.is(result2)) {
+                        matchResult = result2;
+                      }
+                    }
+                  }
+                  if (!matchResult && !result2.isMethodSetterDefinition) {
+                    properties.push(result2);
+                  }
                 }
               }
             } else {
@@ -12631,7 +12651,7 @@ var require_Stack = __commonJS({
           return matchResult || anyType;
         } else if (this.isLiteralObject(object)) {
           dynamicAttribute = true;
-          let desc = object.target && (object.target.isObjectExpression || object.target.isTypeObjectDefinition) ? object.target.attribute(property) : object.attribute(property);
+          let desc = (object.target && (object.target.isObjectExpression || object.target.isTypeObjectDefinition) ? object.target.attribute(property) : null) || object.attribute(property);
           if (desc) {
             return desc;
           }
@@ -12804,6 +12824,10 @@ var require_Stack = __commonJS({
         if (!stack)
           return false;
         return stack.isTypeDefinition || stack.isTypeTupleRestDefinition || stack.isTypeTupleDefinition || stack.isTypeGenericDefinition || stack.isTypeObjectDefinition || stack.isTypeObjectPropertyDefinition || stack.isTypeFunctionDefinition || stack.isTypeComputeDefinition || stack.isTypeIntersectionDefinition || stack.isTypeKeyofDefinition || stack.isTypeTypeofDefinition || stack.isTypeUniqueDefinition || stack.isTypePredicateDefinition || stack.isTypeConditionDefinition || stack.isTypeInferDefinition || stack.isTypeConditionalExpression || stack.isTypeUnionDefinition;
+      }
+      inStrategyContext() {
+        const stack = this.getParentStack((stack2) => stack2.isWhenStatement || stack2.isMethodDefinition);
+        return !!(stack && stack.isWhenStatement);
       }
       isModuleForWebComponent(module2) {
         if (!(module2 && module2.isModule && module2.isClass)) {
@@ -13105,15 +13129,16 @@ var require_Stack = __commonJS({
           stack2.parser();
           const desc = stack2.description();
           if (desc && (!stack2.parentStack.isLogicalExpression || stack2.parentStack.isAndOperator)) {
+            const descKey = desc.isTypeObjectPropertyDefinition && desc.computed ? stack2.raw() : desc;
             const pScore = scope.parent || scope;
-            const old = pScore.getValidateState(desc, true);
+            const old = pScore.getValidateState(descKey, true);
             if (old && old.value !== value2 && old.stack === pp) {
               stack2.warn(1191);
               old.expr.warn(1191);
             } else {
-              pScore.setValidateState(desc, this, value2, stack2, pp);
+              pScore.setValidateState(descKey, this, value2, stack2, pp);
               if ((pp.isIfStatement || pp.isConditionalExpression) && pp.alternate) {
-                pp.alternate.scope.setValidateState(desc, this, value2, stack2, pp, true);
+                pp.alternate.scope.setValidateState(descKey, this, value2, stack2, pp, true);
               }
             }
           }
@@ -13353,6 +13378,67 @@ var require_Stack = __commonJS({
           return parent === desc;
         }
         return false;
+      }
+      getGenericTypeUniKey() {
+        if (!(this.isGenericTypeDeclaration || this.isGenericTypeAssignmentDeclaration))
+          return null;
+        let parent = this.parentStack.parentStack;
+        const index = this.parentStack.elements.indexOf(this);
+        const namespace = this.namespace.toString();
+        let classId = null;
+        let methodId = null;
+        let token = "";
+        let hash = `${String(this.parentStack.elements.length)}`;
+        if (this.isGenericTypeAssignmentDeclaration) {
+          hash += "=" + this.right.raw();
+        }
+        if (parent.isCallDefinition || parent.isNewDefinition) {
+          methodId = parent.toString();
+          parent = parent.parentStack;
+        }
+        if (this.extends) {
+          token = this.extends.toString();
+        }
+        if (parent.isClassDeclaration || parent.isInterfaceDeclaration || parent.isDeclaratorDeclaration) {
+          classId = parent.id.value();
+        } else if (parent.isFunctionExpression || parent.isTypeFunctionDefinition) {
+          if (parent.key) {
+            hash += `-${parent.params.length}`;
+            if (parent.parentStack.isMethodDefinition) {
+              classId = parent.parentStack.module.id;
+            } else if (parent.module) {
+              classId = parent.module.id;
+            }
+            if (parent.isDeclaratorFunction) {
+              classId = parent.key.value();
+            } else {
+              methodId = parent.key.value();
+            }
+          } else if (parent.parentStack.isProperty) {
+            const mStack = parent.parentStack.getParentStack((parent2) => {
+              if (parent2.isMethodDefinition) {
+                return true;
+              }
+            });
+            if (parent.parentStack.module) {
+              classId = parent.module.id;
+            }
+            if (mStack && mStack.isMethodDefinition) {
+              methodId = `${mStack.key.value()}:${parent.parentStack.key.value()}`;
+            } else {
+              methodId = parent.parentStack.key.value();
+            }
+          }
+        } else if (parent.isDeclaratorTypeAlias) {
+          classId = parent.id;
+        }
+        const name = namespace ? `${namespace}.${classId}` : classId;
+        const iden = methodId ? `${methodId}:${hash}-${index}` : `${hash}-${index}`;
+        if (token) {
+          return `${name}::${token}::${iden}`;
+        } else {
+          return `${name}::${iden}`;
+        }
       }
     };
     module.exports = Stack;
@@ -16417,7 +16503,11 @@ var require_FunctionExpression = __commonJS({
               const last = this.scope.returnItems[this.scope.returnItems.length - 1];
               last.error(1052);
             }
-            if (this.module.inherit && this.scope.firstSuperIndex != 1) {
+            let inherit = this.module.inherit;
+            if (inherit) {
+              inherit = inherit.type();
+            }
+            if (inherit && !inherit.abstract && !inherit.isInterface && this.scope.firstSuperIndex != 1) {
               (this.body.childrenStack[0] || this.key).error(1053);
             }
           } else if (!isInterface && this.body && !(this.scope.returnItems.length > 0)) {
@@ -16543,8 +16633,8 @@ var require_AssignmentExpression = __commonJS({
           let scope = this.scope;
           if (scope && scope.allowInsertionPredicate()) {
             let lType = this.left.type();
-            if (!lType || (lType.isAnyType || lType.isNullableType || lType.isUndefinedType)) {
-              if (desc.isProperty && desc.computed && this.left.isMemberExpression) {
+            if (lType && (lType.isAnyType || lType.isNullableType || lType.isUndefinedType)) {
+              if (!lType.isAnyType && desc.isProperty && desc.computed && this.left.isMemberExpression) {
                 const origin = this.left.getFirstMemberStack().description();
                 if (origin && origin.isDeclarator) {
                   const rType = this.right.type();
@@ -16924,7 +17014,11 @@ var require_BinaryExpression = __commonJS({
               const scope = pp.consequent.scope;
               const condition = pp.isIfStatement ? pp.condition : pp.test;
               if (scope && scope.allowInsertionPredicate()) {
-                let existed = scope.getPredicate(lDesc, true);
+                let descKey = lDesc;
+                if (lDesc.isTypeObjectPropertyDefinition && lDesc.computed && this.left.isMemberExpression) {
+                  descKey = this.left.raw();
+                }
+                let existed = scope.getPredicate(descKey, true);
                 let cacheId = this.getCacheId();
                 if (existed && existed.cacheId === cacheId) {
                   if (condition.isLogicalExpression) {
@@ -16934,7 +17028,7 @@ var require_BinaryExpression = __commonJS({
                       if (existed.type.isUnionType) {
                         existed.type.elements.push(rightType);
                       } else {
-                        scope.setPredicate(lDesc, Predicate.create(
+                        scope.setPredicate(descKey, Predicate.create(
                           new UnionType([existed.type, rightType]),
                           this.right.description(),
                           lDesc,
@@ -16948,7 +17042,7 @@ var require_BinaryExpression = __commonJS({
                     this.warn(1186, this.raw());
                   }
                 } else {
-                  scope.setPredicate(lDesc, Predicate.create(rightType, this.right.description(), lDesc, cacheId));
+                  scope.setPredicate(descKey, Predicate.create(rightType, this.right.description(), lDesc, cacheId));
                 }
               }
             }
@@ -16990,7 +17084,7 @@ var require_BlockStatement = __commonJS({
     var BlockScope = require_BlockScope();
     var BlockStatement = class extends Stack {
       constructor(compilation, node2, scope, parentNode, parentStack) {
-        if (parentStack && !(parentStack.isFunctionDeclaration || parentStack.isFunctionExpression || parentStack.isArrowFunctionExpression || parentStack.isForOfStatement || parentStack.isForInStatement || parentStack.isForStatement || parentStack.isIfStatement || parentStack.isWhileStatement || parentStack.isWhenStatement)) {
+        if (parentStack && !(parentStack.isFunctionDeclaration || parentStack.isFunctionExpression || parentStack.isArrowFunctionExpression || parentStack.isForOfStatement || parentStack.isForInStatement || parentStack.isForStatement || parentStack.isIfStatement || parentStack.isTryStatement && parentNode.handler.body === node2 || parentStack.isWhileStatement || parentStack.isWhenStatement)) {
           scope = new BlockScope(scope);
         }
         super(compilation, node2, scope, parentNode, parentStack);
@@ -18527,6 +18621,7 @@ var require_DeclaratorDeclaration = __commonJS({
             module2 = compilation.createPureModule(idName);
             module2.namespace = this.namespace;
           }
+          module2.setJSModule(this.module);
         } else {
           module2 = compilation.createModule(
             this.namespace,
@@ -22452,14 +22547,14 @@ var require_GenericType = __commonJS({
   "lib/types/GenericType.js"(exports, module) {
     var Type = require_Type();
     var GenericType = class extends Type {
-      constructor(target, inherit = null, assignType = null, isFunGeneric = false) {
+      constructor(target, inherit = null, assignType = null, isFunGeneric = false, unikey = null) {
         super("$GenericType", inherit);
         this.target = target;
         this.isGenericType = true;
         this.assignType = assignType;
         this.isFunGeneric = isFunGeneric;
         this.hasGenericType = true;
-        this.unikey = null;
+        this.unikey = unikey;
       }
       getUniKey() {
         const unikey = this.unikey;
@@ -22701,7 +22796,12 @@ var require_GenericTypeAssignmentDeclaration = __commonJS({
       type() {
         if (!this._type) {
           const isFunGeneric = !!(this.parentStack && this.parentStack.parentStack && this.parentStack.parentStack.isFunctionExpression);
-          this._type = new GenericType(this, null, this.right.type(), isFunGeneric);
+          const unikey = this.getGenericTypeUniKey();
+          let type2 = this.compilation.genericRecords[unikey];
+          if (!type2) {
+            type2 = this.compilation.genericRecords[unikey] = new GenericType(this, null, this.right.type(), isFunGeneric, unikey);
+          }
+          this._type = type2;
         }
         return this._type;
       }
@@ -22781,7 +22881,12 @@ var require_GenericTypeDeclaration = __commonJS({
             this._type = Namespace.globals.get("never");
           } else {
             const isFunGeneric = !!(this.parentStack && this.parentStack.parentStack && this.parentStack.parentStack.isFunctionExpression);
-            this._type = new GenericType(this, null, null, isFunGeneric);
+            const unikey = this.getGenericTypeUniKey();
+            let type2 = this.compilation.genericRecords[unikey];
+            if (!type2) {
+              type2 = this.compilation.genericRecords[unikey] = new GenericType(this, null, null, isFunGeneric, unikey);
+            }
+            this._type = type2;
           }
         }
         return this._type;
@@ -22846,7 +22951,7 @@ var require_Identifier = __commonJS({
               return;
             }
           }
-          const maybe = pp.isCallExpression || pp.isNewExpression || pp.isAssignmentPattern && pp.node.right === this.node || pp.isAssignmentExpression && pp.node.right === this.node || pp.isVariableDeclarator && pp.node.init === this.node || pp.isMemberExpression && pp.node.object === this.node || pp.isProperty && pp.computed && pp.node.key === this.node || pp.isProperty && pp.node.value === this.node && !(pp.parentStack.isObjectPattern || pp.parentStack.isArrayPattern);
+          const maybe = pp.isCallExpression || pp.isNewExpression || pp.isAssignmentPattern && pp.node.right === this.node || pp.isAssignmentExpression && pp.node.right === this.node || pp.isVariableDeclarator && pp.node.init === this.node || pp.isMemberExpression && pp.node.object === this.node || pp.isMemberExpression && pp.node.computed && pp.node.property === this.node || pp.isProperty && pp.node.computed && pp.node.key === this.node || pp.isProperty && pp.node.value === this.node && !(pp.parentStack.isObjectPattern || pp.parentStack.isArrayPattern);
           if (maybe) {
             pp = this.getParentStack((stack) => !stack.isMemberExpression);
             if (pp) {
@@ -23392,7 +23497,7 @@ var require_Identifier = __commonJS({
         }
         const _desc = this.is(desc) ? desc.descriptor() : desc;
         if (_desc && _desc.compilation !== this.compilation && !this.isTypeDefinitionStack(pp.parentStack)) {
-          if (!this.compiler.scopeManager.checkDescriptor(_desc, this.compilation)) {
+          if (!this.compiler.scopeManager.checkDescriptor(_desc, this.compilation) && !this.inStrategyContext()) {
             ctx.removed = true;
             return null;
           }
@@ -27969,45 +28074,36 @@ var require_MemberExpression = __commonJS({
           return desc;
         }
         if (this.computed) {
-          if (this.property.isIdentifier) {
-            const refs = this.property.reference();
-            const desc2 = this.property.description();
-            if (refs === this.property && desc2 && !(desc2.isDeclarator && desc2 instanceof Stack)) {
-              this.computed = false;
+          const object = this.object.type();
+          if (this.property.isLiteral) {
+            const _value = this.getObjectDescriptor(object, property, Utils.isClassType(object) && object === description);
+            if (_value) {
+              return _value;
             }
           }
-          if (this.computed) {
-            const object = this.object.type();
-            if (this.property.isLiteral) {
-              const _value = this.getObjectDescriptor(object, property, Utils.isClassType(object) && object === description);
-              if (_value) {
-                return _value;
-              }
-            }
-            if (object.isLiteralObjectType && object.attributes.size > 1) {
-              const merge = new MergeType();
-              object.attributes.forEach((attr) => {
-                merge.add(attr.type());
-              });
-              return merge.type();
-            }
-            const origin = Utils.getOriginType(object, (type2) => {
-              return type2.isLiteralObjectType || type2.isLiteralArrayType;
+          if (object.isLiteralObjectType && object.attributes.size > 1) {
+            const merge = new MergeType();
+            object.attributes.forEach((attr) => {
+              merge.add(attr.type());
             });
-            const ctx = this.getContext();
-            const pType = !this.property.isLiteral ? this.property.type() : null;
-            let result = pType ? this.getObjectDynamicDescriptor(origin, pType, ctx) : null;
-            if (!result) {
-              result = this.getObjectDynamicDescriptor(origin, Namespace.globals.get(typeof property === "number" ? "number" : "string"), ctx);
-            }
-            if (result) {
-              return result;
-            }
-            if (pType && pType.isUniqueType) {
-              return null;
-            }
-            return new ComputeType(this, this.object, this.property);
+            return merge.type();
           }
+          const origin = Utils.getOriginType(object, (type2) => {
+            return type2.isLiteralObjectType || type2.isLiteralArrayType;
+          });
+          const ctx = this.getContext();
+          const pType = !this.property.isLiteral ? this.property.type() : null;
+          let result = pType ? this.getObjectDynamicDescriptor(origin, pType, ctx) : null;
+          if (!result) {
+            result = this.getObjectDynamicDescriptor(origin, Namespace.globals.get(typeof property === "number" ? "number" : "string"), ctx);
+          }
+          if (result) {
+            return result;
+          }
+          if (pType && pType.isUniqueType) {
+            return null;
+          }
+          return new ComputeType(this, this.object, this.property);
         }
         let objectType = this.object.type();
         if (!objectType)
@@ -28134,11 +28230,15 @@ var require_MemberExpression = __commonJS({
                 type2 = description.declarations[0].type();
               }
               if (this.scope.allowInsertionPredicate()) {
-                const predicate = this.scope.getPredicate(description);
+                let descKey = description;
+                if (description.isTypeObjectPropertyDefinition && description.computed) {
+                  descKey = this.raw();
+                }
+                const predicate = this.scope.getPredicate(descKey);
                 if (predicate && predicate.type) {
                   type2 = predicate.type;
                 } else {
-                  const state = this.scope.getValidateState(description);
+                  const state = this.scope.getValidateState(descKey);
                   if (state) {
                     if (state.value && !state.isAlternate || !state.value && state.isAlternate) {
                       type2 = Utils.inferNotNullType(type2);
@@ -32146,6 +32246,7 @@ var require_TryStatement = __commonJS({
   "lib/stacks/TryStatement.js"(exports, module) {
     var Stack = require_Stack();
     var Declarator = require_Declarator();
+    var BlockScope = require_BlockScope();
     var TryStatement = class extends Stack {
       constructor(compilation, node2, scope, parentNode, parentStack) {
         super(compilation, node2, scope, parentNode, parentStack);
@@ -32153,11 +32254,12 @@ var require_TryStatement = __commonJS({
         this.param = null;
         this.handler = null;
         if (node2.handler) {
-          this.param = new Declarator(compilation, node2.handler.param, scope, node2, this);
+          const _scope = new BlockScope(scope);
+          this.param = new Declarator(compilation, node2.handler.param, _scope, node2, this);
           if (node2.handler.param) {
-            scope.define(this.param.value(), this.param);
+            _scope.define(this.param.value(), this.param);
           }
-          this.handler = this.createTokenStack(compilation, node2.handler.body, scope, node2, this);
+          this.handler = this.createTokenStack(compilation, node2.handler.body, _scope, node2, this);
         }
         this.hasReturnStatement = false;
         this.block = this.createTokenStack(compilation, node2.block, scope, node2, this);
@@ -35440,6 +35542,7 @@ var require_Compilation = __commonJS({
         this.importModuleNameds = /* @__PURE__ */ new Map();
         this.hasDeclareJSModule = false;
         this.changed = false;
+        this.genericRecords = {};
       }
       getScopeName() {
         let scope = this[symbolKey].scope;
@@ -37467,6 +37570,9 @@ var require_ScopeManager = __commonJS({
       }
       checkDescriptor(descriptor, contextCompilation, globalResult = true) {
         if (!(Utils.isStack(descriptor) || Utils.isModule(descriptor)))
+          return true;
+        const plugins = this.compiler.options.plugins;
+        if (plugins && !(plugins.length > 1))
           return true;
         const ownerCompilation = descriptor.compilation;
         if (ownerCompilation === contextCompilation)
