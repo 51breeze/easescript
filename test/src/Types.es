@@ -7,6 +7,10 @@ package{
         label(){
             return '';
         }
+
+        getType(){
+            return ''
+        }
     }
 
 }

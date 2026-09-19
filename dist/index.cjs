@@ -6031,7 +6031,9 @@ var require_Module = __commonJS({
         if ((this.isInterface || this.isStructTable) && type2.isLiteralObjectType) {
           const dynamic = this.dynamicProperties;
           if (dynamic && dynamic.size > 0) {
-            return dynamic.has(Namespace2.globals.get("string"));
+            if (dynamic.has(Namespace2.globals.get("string"))) {
+              return true;
+            }
           }
           const properties = Object.keys(this.members);
           const errorHandler = context && context.errorHandler || ((result2) => result2);
@@ -12570,7 +12572,7 @@ var require_Stack = __commonJS({
             }
           }
           const references = this.compiler.options.checker.references;
-          if (!isFullMatch && references.exactly) {
+          if (!this.optional && !isFullMatch && references.exactly) {
             (this.object || this).warn(1188, property);
           }
           if (hasNull && this.isMemberExpression && !this.optional && references.noNullable) {
@@ -17445,6 +17447,20 @@ var require_CallExpression = __commonJS({
         const type2 = this.type();
         return this.getAttribute("CallExpression.getRawType") || type2;
       }
+      replaceThisType(type2) {
+        if (!type2)
+          return type2;
+        const _type = type2.type();
+        if (_type.isInstanceofType && _type.isThisType) {
+          const refs = this.callee;
+          if (refs && refs.isMemberExpression) {
+            return refs.object.type();
+          } else {
+            return refs.type();
+          }
+        }
+        return type2;
+      }
       getReturnType() {
         return this.getAttribute("CallExpression.getReturnType", () => {
           let description = this.descriptor();
@@ -17456,6 +17472,22 @@ var require_CallExpression = __commonJS({
             const result = description.getReturnedType(this);
             if (result) {
               type2 = result.type();
+              if (type2.isUnionType) {
+                const has = type2.elements.some((item2) => {
+                  const type3 = item2.type();
+                  return type3.isInstanceofType && type3.isThisType;
+                });
+                if (has) {
+                  const merge = new MergeType();
+                  merge.target = type2.target;
+                  type2.elements.forEach((type3) => {
+                    merge.add(this.replaceThisType(type3));
+                  });
+                  type2 = merge.type();
+                }
+              } else {
+                type2 = this.replaceThisType(type2);
+              }
             }
           } else {
             let result = description.type();
@@ -17482,20 +17514,16 @@ var require_CallExpression = __commonJS({
                 if (elements.length > 1) {
                   const merge = new MergeType();
                   merge.target = result.target;
-                  elements.forEach((type3) => merge.add(type3));
+                  elements.forEach((type3) => {
+                    merge.add(this.replaceThisType(type3));
+                  });
                   type2 = result = merge.type();
                 } else {
-                  type2 = result = elements[0];
+                  type2 = result = this.replaceThisType(elements[0]);
                 }
               }
-            }
-            if (result.isInstanceofType && result.isThisType) {
-              const refs = this.callee;
-              if (refs && refs.isMemberExpression) {
-                result = refs.object.type();
-              } else {
-                result = refs.type();
-              }
+            } else {
+              result = this.replaceThisType(result);
             }
             if (result && result.isFunctionType) {
               result = result.returnType;
@@ -17506,21 +17534,6 @@ var require_CallExpression = __commonJS({
           }
           if (!type2) {
             return Namespace2.globals.get("any");
-          }
-          if (type2.isInstanceofType && type2.isThisType && this.callee.isMemberExpression) {
-            const _type = this.callee.object.type();
-            if (_type.isUnionType) {
-              const els = _type.elements.filter((el) => {
-                const t = el.type();
-                if (t.isNullableType || t.isUndefinedType || t.isNeverType || t.isVoidType || t.isUnknownType)
-                  return false;
-                return true;
-              });
-              if (els.length === 1) {
-                return els[0].type();
-              }
-            }
-            return _type;
           }
           return type2;
         });
@@ -17701,14 +17714,10 @@ var require_CallExpression = __commonJS({
           return true;
         }
         if (description.isMethodDefinition || description.isFunctionExpression && !description.isDeclaratorFunction) {
-          if (description.isNoop) {
-            whenThrow.unnecessary(1185);
-          } else {
-            let fnStatement = description.isMethodDefinition ? description.expression : description;
-            if (fnStatement && fnStatement.body && fnStatement.body.isBlockStatement) {
-              if (fnStatement.body.body.length === 0) {
-                whenThrow.unnecessary(1185);
-              }
+          let fnStatement = description.isMethodDefinition ? description.expression : description;
+          if (fnStatement && fnStatement.body && fnStatement.body.isBlockStatement) {
+            if (fnStatement.body.body.length === 0 && !fnStatement.isNoop) {
+              whenThrow.unnecessary(1185);
             }
           }
         }
@@ -19123,6 +19132,9 @@ var require_AliasType = __commonJS({
         if (!type2)
           return false;
         if (type2.isAliasType) {
+          if (Utils2.getOriginType(this) === Utils2.getOriginType(type2)) {
+            return true;
+          }
           return this.is(type2.inherit.type(), context, options);
         } else if (type2.isIntersectionType) {
           return [type2.left, type2.right].some((item2) => this.is(item2.type(), context, options));
@@ -19137,6 +19149,9 @@ var require_AliasType = __commonJS({
         if (!type2 || !(type2 instanceof Type))
           return false;
         if (type2.isAliasType) {
+          if (Utils2.getOriginType(this) === Utils2.getOriginType(type2)) {
+            return true;
+          }
           return this.is(type2.inherit.type(), context, options);
         }
         type2 = this.inferType(type2, context);
@@ -24193,7 +24208,6 @@ var require_ImportDefaultSpecifier = __commonJS({
 var require_ImportExpression = __commonJS({
   "lib/stacks/ImportExpression.js"(exports2, module2) {
     var Stack = require_Stack();
-    var Utils2 = require_Utils();
     var ImportExpression = class extends Stack {
       constructor(compilation, node2, scope, parentNode, parentStack) {
         super(compilation, node2, scope, parentNode, parentStack);
@@ -24219,7 +24233,7 @@ var require_ImportExpression = __commonJS({
         if (desc) {
           return desc.definition(ctx);
         }
-        let compi = this.parentStack.getResolveCompilation();
+        let compi = this.getResolveCompilation();
         let file = compi ? compi.file : null;
         let location = compi ? compi.stack.getLocation() : null;
         const def = {
@@ -24230,7 +24244,7 @@ var require_ImportExpression = __commonJS({
         return def;
       }
       hover(ctx) {
-        let compi = this.parentStack.getResolveCompilation();
+        let compi = this.getResolveCompilation();
         let file = compi ? compi.file : null;
         let selection = (ctx?.hoverStack || this.source).getLocation();
         const def = {
@@ -24250,23 +24264,21 @@ var require_ImportExpression = __commonJS({
             if (compilation && compilation.modules.size > 0) {
               return compilation.mainModule;
             }
-          } else {
-            return this.getModuleById(this.source.value());
           }
         }
         return null;
       }
       getResolveFile() {
         return this.getAttribute("getResolveFile", () => {
-          const id = this.source.isLiteral ? this.source.value() : this.source.value().replace(".", "/");
-          const resolve = this.resolve = this.compiler.resolveManager.resolveFile(
-            id,
-            id.includes(".") ? id : this.compilation.file
-          );
-          if (!resolve) {
-            this.source.error(1122, this.source.value());
+          const id = this.source.isLiteral ? this.source.value() : null;
+          if (id) {
+            const resolve = this.resolve = this.compiler.resolveManager.resolveFile(
+              id,
+              id.includes(".") ? id : this.compilation.file
+            );
+            return resolve;
           }
-          return resolve;
+          return null;
         });
       }
       getResolveCompilation() {
@@ -24277,8 +24289,9 @@ var require_ImportExpression = __commonJS({
           return this.getAttributeAlways("resolveCompilation");
         }
         let compilation = null;
-        if (this.compiler.checkFileExt(this.getResolveFile())) {
-          compilation = await this.compilation.createChildCompilation(this.getResolveFile(), this.compilation.file);
+        const file = this.getResolveFile();
+        if (file && this.compiler.checkFileExt(file)) {
+          compilation = await this.compilation.createChildCompilation(file, this.compilation.file);
           if (!compilation) {
             this.source.error(1132, this.source.value());
           } else {
@@ -24303,19 +24316,23 @@ var require_ImportExpression = __commonJS({
         if (super.parser() === false)
           return false;
         if (this.source) {
-          const module3 = this.description();
-          if (!module3) {
-            if (this.compiler.checkFileExt(this.getResolveFile())) {
-              const file = this.source.value();
-              if (file) {
-                this.source.error(1026, this.source.value());
-              } else {
-                this.source.error(1060, this.source.value());
-              }
-            }
+          if (this.source.isIdentifier) {
+            this.source.parser();
           } else {
-            module3.used = true;
-            this.compilation.addDependency(module3, this.module);
+            const module3 = this.description();
+            if (!module3) {
+              if (this.compiler.checkFileExt(this.getResolveFile())) {
+                const file = this.source.value();
+                if (file) {
+                  this.source.error(1026, this.source.value());
+                } else {
+                  this.source.error(1060, this.source.value());
+                }
+              }
+            } else {
+              module3.used = true;
+              this.compilation.addDependency(module3, this.module);
+            }
           }
         } else {
           this.error(1e3, 1, 0);
@@ -27824,7 +27841,8 @@ var require_ComputeType = __commonJS({
         let object = this.inferType(this.object.type(), context);
         let property = this.inferType(this.property.type(), context);
         if (!(object.isGenericType || property.isGenericType)) {
-          return this.inferType(this.getComputeValue(object, property), context).is(type2, context, options);
+          const base = this.inferType(this.getComputeValue(object, property), context);
+          return base ? base.is(type2, context, options) : true;
         }
         return !(type2.isTupleType || type2.isLiteralArrayType);
       }
@@ -32248,8 +32266,8 @@ var require_TryStatement = __commonJS({
         this.handler = null;
         if (node2.handler) {
           const _scope = new BlockScope(scope);
-          this.param = new Declarator(compilation, node2.handler.param, _scope, node2, this);
           if (node2.handler.param) {
+            this.param = new Declarator(compilation, node2.handler.param, _scope, node2, this);
             _scope.define(this.param.value(), this.param);
           }
           this.handler = this.createTokenStack(compilation, node2.handler.body, _scope, node2, this);
@@ -36761,6 +36779,8 @@ var require_Compilation = __commonJS({
             } else if (mainModule.isEnum) {
               return -1;
             }
+          } else {
+            return 3;
           }
         }
         return power;

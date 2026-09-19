@@ -56,8 +56,7 @@ class Index{
         const load = async(update99999?:boolean=false)=>{
             return 1
         }
-        
-
+        Types.valueOf(1)?.getType()
         type T988 = number[];
         const list999:T988 = [];
         const group:{[key:string]:T988} = {};
